@@ -1,0 +1,75 @@
+ {"0xBenEATSARSE": {
+        "all_labels": [
+            "degen",
+            "hodler",
+            "trader",
+            "investor",
+            "ass trader"
+        ],
+        "dex_labels": [
+            "degen",
+            "ass trader"
+        ],
+        "dex_return": 1.5,
+        "dex_trade_count": 125,
+        "dex_trade_volume_usd": 125,
+        "dex_most_traded_token": "ETH",
+        "dex_gas_used": 15000,
+        "dex_fees_usd": 15000,
+        "nft_labels": [
+            "degen",
+            "color lover"
+        ],
+        "nft_return": 1.25,
+        "nft_trade_count": 100,
+        "nft_trade_volume_usd": 100,
+        "nft_most_traded_collection": "CryptoPunks",
+        "num_contracts_deployed": 69,
+        "dex_last_trades": [
+            {
+                "timestamp": 1677953506,
+                "hash": "0x123",
+                "tx_link": "https://www.okx.com/explorer/okc/tx/0x44496f13ffe59fa35443bc100dd1b336dda613de7a162eb0fd9c4e41e93b42eb",
+                "buy_token": "ETH",
+                "buy_token_quantity": 1,
+                "sell_token": "USDC",
+                "sell_token_quantity": 0.5,
+                "chain": "OKX"
+            },
+            {
+                "timestamp": 1677953506,
+                "hash": "0x123",
+                "tx_link": "https://www.okx.com/explorer/okc/tx/0x44496f13ffe59fa35443bc100dd1b336dda613de7a162eb0fd9c4e41e93b42eb",
+                "buy_token": "ETH",
+                "buy_token_quantity": 1,
+                "sell_token": "USDC",
+                "sell_token_quantity": 0.5,
+                "chain": "OKX"
+            }
+        ],
+        "nft_last_trades": [
+            {
+                "timestamp": 1677953506,
+                "hash": "0x123",
+                "tx_link": "https://www.okx.com/explorer/okc/tx/0x44496f13ffe59fa35443bc100dd1b336dda613de7a162eb0fd9c4e41e93b42eb",
+                "collection_name": "CryptoSchwanz",
+                "token_id": 1,
+                "price": 100,
+                "side": "buy",
+                "chain": "Ethereum",
+                "platform": "OpenSea"
+            },
+            {
+                "timestamp": 1677953506,
+                "hash": "0x123",
+                "tx_link": "https://www.okx.com/explorer/okc/tx/0x44496f13ffe59fa35443bc100dd1b336dda613de7a162eb0fd9c4e41e93b42eb",
+                "collection_name": "BoredApeSwanzYachtClub",
+                "token_id": 1,
+                "price": 125,
+                "side": "sell",
+                "chain": "Ethereum",
+                "platform": "OpenSea"
+            }
+        ]
+    }
+}
