@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ethers } from 'ethers';
 import { useRouter } from "next/router";
 import Meta from "components/Meta";
-import LinearProgress from "@mui/material/LinearProgress";
-
+import Avatar from "@mui/material/Avatar";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
@@ -11,21 +10,20 @@ import Section from "components/Section";
 import SectionHeader from "components/SectionHeader";
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
-
 import { makeStyles } from "@mui/styles";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Avatar,
-} from "@mui/material";
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import TableSortLabel from '@mui/material/TableSortLabel';
+import TextField from '@mui/material/TextField';
 import { Typography, Chip } from "@mui/material";
-
+import Paper from "@mui/material/Paper";
 import Web3 from 'web3';
 import { useNetwork } from 'wagmi'
+
 
 
 const useStyles = makeStyles((theme) => ({
@@ -48,12 +46,46 @@ const useStyles = makeStyles((theme) => ({
 }));
 
   function DashboardPage(props) {
+    function descendingComparator(a, b, orderBy) {
+      if (b[orderBy] < a[orderBy]) {
+        return -1;
+      }
+      if (b[orderBy] > a[orderBy]) {
+        return 1;
+      }
+      return 0;
+    }
+    
+    function getComparator(order, orderBy) {
+      return order === 'desc'
+        ? (a, b) => descendingComparator(a, b, orderBy)
+        : (a, b) => -descendingComparator(a, b, orderBy);
+    }
+    
+    function stableSort(array, comparator) {
+      const stabilizedThis = array.map((el, index) => [el, index]);
+      stabilizedThis.sort((a, b) => {
+        const order = comparator(a[0], b[0]);
+        if (order !== 0) return order;
+        return a[1] - b[1];
+      });
+      return stabilizedThis.map((el) => el[0]);
+    }
     const { chain, chains } = useNetwork();
     
 //
 const web3 = new Web3();
 const [rows, setRows] = useState([]);
 
+const handleSort = (property) => (event) => {
+  const isAsc = orderBy === property && order === 'asc';
+  setOrder(isAsc ? 'desc' : 'asc');
+  setOrderBy(property);
+};
+
+const handleSearch = (event) => {
+  setSearch(event.target.value);
+};
 
  
 
@@ -61,8 +93,9 @@ const [rows, setRows] = useState([]);
 
    
   const [value, setValue] = useState('all')
-  const [searchText, setSearchText] = useState("Frog");
-  
+  const [search, setSearch] = useState('');
+const [order, setOrder] = useState('asc');
+const [orderBy, setOrderBy] = useState('name');
 
 
   let bondData = [
@@ -74,13 +107,22 @@ const [rows, setRows] = useState([]);
       currentPrice: 120,
       fluctuation: 20,
     },
+    {
+      icon: "https://via.placeholder.com/150",
+      name: "Bond 2",
+      number: 2,
+      issuePrice: 100,
+      currentPrice: 120,
+      fluctuation: 20,
+    },
     // ... add more bonds as necessary
   ];
   
  
 
   const classes = useStyles();
- 
+  const filteredBonds = bondData.filter(bond => bond.name.toLowerCase().includes(search.toLowerCase()));
+
   return (
 
     <> 
@@ -102,50 +144,85 @@ const [rows, setRows] = useState([]);
         
         <Grid container={true} spacing={4}>
         <Grid item={true} xs={12} md={12}>
-  <Card>
-    <CardContent>
-      <Typography
-        sx={{ fontWeight: 'bold' }}
-        className={classes.gradientText}
-        variant='h5'>
-        View Bonds
-      </Typography>
-      <Typography>Current Outstanding Bonds</Typography>
-      <br/>
-
-      <TableContainer component={Card}>
-        <Table sx={{ minWidth: 650 }} aria-label="simple table">
-          <TableHead>
-            <TableRow>
-              <TableCell>Icon</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Number</TableCell>
-              <TableCell>Issue Price</TableCell>
-              <TableCell>Current Price</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {bondData.map((bond) => (
-              <TableRow
-              key={bond.name}
-              sx={{
-                "&:hover": {
-                  backgroundColor: "rgba(0, 0, 0, 0.04)", // or any color you want
-                  transition: "all .2s ease",
-                },
-              }}
-            >
-                <TableCell>
-                  <Avatar alt={bond.name} src={bond.icon} />
-                </TableCell>
-                <TableCell>{bond.name}</TableCell>
-                <TableCell>{bond.number}</TableCell>
-                <TableCell>{bond.issuePrice}</TableCell>
-                <TableCell>{bond.currentPrice}</TableCell>
-               
-              </TableRow>
-            ))}
-          </TableBody>
+            <Card>
+              <CardContent sx={{ padding: 3 }}>
+                <Typography sx={{ fontWeight: 'bold'}} className={classes.gradientText} variant='h5'>View Bonds</Typography>
+                <Typography>Explore the investment universe</Typography>
+                <br/>
+                <TextField
+                  value={search}
+                  onChange={handleSearch}
+                  label="Search"
+                  variant="outlined"
+                />
+                <TableContainer component={Paper}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>
+                          <TableSortLabel
+                            active={orderBy === 'name'}
+                            direction={orderBy === 'name' ? order : 'asc'}
+                            onClick={handleSort('name')}
+                          >
+                            Name
+                          </TableSortLabel>
+                        </TableCell>
+                        <TableCell align="right">
+                          <TableSortLabel
+                            active={orderBy === 'number'}
+                            direction={orderBy === 'number' ? order : 'asc'}
+                            onClick={handleSort('number')}
+                          >
+                            Number
+                          </TableSortLabel>
+                        </TableCell>
+                        <TableCell align="right">
+                          <TableSortLabel
+                            active={orderBy === 'issuePrice'}
+                            direction={orderBy === 'issuePrice' ? order : 'asc'}
+                            onClick={handleSort('issuePrice')}
+                          >
+                            Issue Price
+                          </TableSortLabel>
+                        </TableCell>
+                        <TableCell align="right">
+                          <TableSortLabel
+                            active={orderBy === 'currentPrice'}
+                            direction={orderBy === 'currentPrice' ? order : 'asc'}
+                            onClick={handleSort('currentPrice')}
+                          >
+                            Current Price
+                          </TableSortLabel>
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                {stableSort(filteredBonds, getComparator(order, orderBy)).map((bond) => (
+                  <TableRow
+                  key={bond.name}
+                  sx={{
+                    "&:hover": {
+                      backgroundColor: "rgba(0, 0, 0, 0.04)", // or any color you want
+                      transition: "all .2s ease",
+                    },
+                  }}
+                >
+                    <TableCell component="th" scope="row">
+                      <Box display="flex" alignItems="center">
+                        <Avatar alt={bond.name} src={bond.image} />
+                        <Typography variant="body1" style={{ marginLeft: 10 }}>
+                          {bond.name}
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell align="right">{bond.number}</TableCell>
+                    <TableCell align="right">{bond.issuePrice}</TableCell>
+                    <TableCell align="right">{bond.currentPrice}</TableCell>
+                  
+                  </TableRow>
+                ))}
+              </TableBody>
         </Table>
       </TableContainer>
     </CardContent>
