@@ -8,5 +8,11 @@ import {OptimisticOracleV3Interface} from "./interfaces/OptimisticOracleV3Interf
 // Libraries
 import {AncillaryData as ClaimData} from "./libraries/AncillaryData.sol";
 
-contract Cat is ICat {
+// Contracts
+import {ERC4626, IERC20} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
+
+
+abstract contract Cat is ICat, ERC4626 {
+    constructor(
+        address asset_) ERC4626(IERC20(asset_))  {}
 }
