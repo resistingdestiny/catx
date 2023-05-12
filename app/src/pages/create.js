@@ -39,14 +39,16 @@ const MapContainer = dynamic(() => import('components/MapComponent'), {
     angle: 90,
     spread: 360,
     startVelocity: 20,
-    elementCount: 70,
+    elementCount: 140,
     dragFriction: 0.12,
-    duration: 3000,
+    duration: 5000,
     stagger: 3,
     width: "10px",
     height: "10px",
     perspective: "500px",
-    colors: ["#a864fd", "#29cdff", "#20b3ff", "#b4e33d", "#ef62d1", "#ff38ab", "#ff9d00", "#ffffff"]
+    colors: ["#a864fd", "#29cdff", "#20b3ff", "#b4e33d", "#ef62d1", "#ff38ab", "#ff9d00", "#ffffff"],
+    origin: { y: 0, x: 0.5 }, 
+
   };
 function DashboardPage(props) {
 
@@ -163,9 +165,9 @@ function DashboardPage(props) {
             sx={{ textAlign: "center" }}
           />
 
-<Confetti active={ isCelebrating } config={ confettiConfig } />
 
           <Grid container={true} spacing={2}>
+
             <Grid item={true} xs={12} md={7}>
               <Card>
                 <CardContent sx={{ padding: 3 }}>
@@ -273,6 +275,7 @@ function DashboardPage(props) {
                 </CardContent>
               </Card>
             </Grid>
+            <Confetti active={ isCelebrating } config={ confettiConfig } />
 
             <Grid item={true} xs={12} md={5}>
              
