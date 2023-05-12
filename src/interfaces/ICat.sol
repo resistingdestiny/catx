@@ -5,12 +5,12 @@ interface ICat {
     struct Policy {
         // tried to pack a bit efficiently:
         address holder; // address of policy holder (deployer)
-        uint8 premium; //premium in Basis PointS
-        uint4 category; // category of catastrophe e.g (hurricane) category 3
+        uint8 category; // category of catastrophe e.g (hurricane) category 3
         bool settled; // is the policy active?
         bytes32 typeHash; // hash of type of catastrophe e.g hurricane
         uint paymentFrequency; // payment frequency in seconds
         uint size; //number of collateral tokens required in policy
+        uint[3] premiums; // set of three premiums (one for each tier)
         address underlying; // address of collateral token
         string statement; // UMA text statement
     }
@@ -19,7 +19,7 @@ interface ICat {
 
     function reservesPerShare(uint) external view returns (uint);
 
-    function getPolicy() external view returns (Policy);
+    function getPolicy() external view returns (Policy memory);
 
     function payPremium(uint) external; // allows policy holder to pay premium
 
