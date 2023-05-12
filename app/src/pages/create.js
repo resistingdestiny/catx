@@ -22,6 +22,7 @@ import { useForm } from "react-hook-form";
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import Slider from '@mui/material/Slider';
+import { MapContainer, TileLayer, Circle, useMapEvents } from 'react-leaflet';
 
 import Alert from "@mui/material/Alert";
 import Snackbar from "@mui/material/Snackbar";
@@ -150,7 +151,7 @@ function DashboardPage(props) {
                         <TableCell align="right">
                           <TextField
                             fullWidth
-                            type="number"
+                            type="text"
                             value={bondName}
                             onChange={handleName}
                             inputProps={{ min: 0 }}
@@ -174,7 +175,7 @@ function DashboardPage(props) {
                         <TableCell align="right">
                           <TextField
                             fullWidth
-                            type="number"
+                            type="text"
                             value={bondName}
                             onChange={handleName}
                             inputProps={{ min: 0 }}

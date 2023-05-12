@@ -51,6 +51,11 @@ function Navbar2(props) {
                   Dashboard{" "}
                 </Button>
               </Link>
+              <Link href="/create" passHref={true}>
+                <Button color="inherit" component="a">
+                  Create{" "}
+                </Button>
+              </Link>
              
               
 
