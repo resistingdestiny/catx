@@ -28,21 +28,35 @@ import Snackbar from "@mui/material/Snackbar";
 import { DateRange } from "@mui/icons-material";
 import { makeStyles } from '@mui/styles';
 import 'leaflet/dist/leaflet.css';
+import Confetti from 'react-dom-confetti';
 
 
 const MapContainer = dynamic(() => import('components/MapComponent'), {
     ssr: false, 
   });
 
-
+  const confettiConfig = {
+    angle: 90,
+    spread: 360,
+    startVelocity: 20,
+    elementCount: 70,
+    dragFriction: 0.12,
+    duration: 3000,
+    stagger: 3,
+    width: "10px",
+    height: "10px",
+    perspective: "500px",
+    colors: ["#a864fd", "#29cdff", "#20b3ff", "#b4e33d", "#ef62d1", "#ff38ab", "#ff9d00", "#ffffff"]
+  };
 function DashboardPage(props) {
 
 
+    const [isCelebrating, setIsCelebrating] = useState(false);
 
   const [successAlertOpen, setSuccessAlertOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState(false);
   const [bondName, setBondName] = useState(false);
-  const [endDate, setEndDate] = useState(false);
+  const [endDate, setEndDate] = useState(new Date().setDate(new Date().getDate() + 1));
   const [frequency, setFrequency] = useState(1);
 
   const { handleSubmit, register, errors, reset } = useForm();
@@ -104,8 +118,10 @@ function DashboardPage(props) {
      
         setSuccessMessage('Ye boi'); // Update the success message
         setSuccessAlertOpen(true);
-
-   
+        setIsCelebrating(true);
+        setTimeout(() => setIsCelebrating(false), 3000); // Stop confetti after 3 seconds
+  
+       
     
 
     } catch (error) {
@@ -139,6 +155,7 @@ function DashboardPage(props) {
         bgImageOpacity={props.bgImageOpacity}
       >
         <Container>
+
           <SectionHeader
             title={props.title}
             subtitle={props.subtitle}
@@ -146,6 +163,7 @@ function DashboardPage(props) {
             sx={{ textAlign: "center" }}
           />
 
+<Confetti active={ isCelebrating } config={ confettiConfig } />
 
           <Grid container={true} spacing={2}>
             <Grid item={true} xs={12} md={7}>
@@ -221,6 +239,7 @@ function DashboardPage(props) {
                           name="date"
                           color="secondary"
                           disableFuture={false}
+                          disablePast={true}
                           value={endDate}
                           onChange={handleEndDate}
                           fullWidth={true}
