@@ -101,6 +101,7 @@ const [orderBy, setOrderBy] = useState('name');
   let bondData = [
     {
       icon: "https://via.placeholder.com/150",
+      id: 1,
       name: "Bond 1",
       number: 1,
       issuePrice: 100,
@@ -109,6 +110,7 @@ const [orderBy, setOrderBy] = useState('name');
     },
     {
       icon: "https://via.placeholder.com/150",
+      id: 2,
       name: "Bond 2",
       number: 2,
       issuePrice: 100,
@@ -122,7 +124,9 @@ const [orderBy, setOrderBy] = useState('name');
 
   const classes = useStyles();
   const filteredBonds = bondData.filter(bond => bond.name.toLowerCase().includes(search.toLowerCase()));
-
+  const handleRowClick = (id) => {
+    router.push(`/bond?${id}`);
+  };
   return (
 
     <> 
@@ -201,10 +205,12 @@ const [orderBy, setOrderBy] = useState('name');
                 {stableSort(filteredBonds, getComparator(order, orderBy)).map((bond) => (
                   <TableRow
                   key={bond.name}
+                  onClick={() => handleRowClick(bond.id)}
                   sx={{
                     "&:hover": {
                       backgroundColor: "rgba(0, 0, 0, 0.04)", // or any color you want
                       transition: "all .2s ease",
+                      cursor: "pointer",
                     },
                   }}
                 >

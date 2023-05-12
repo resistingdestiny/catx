@@ -10,6 +10,8 @@ import SectionHeader from "components/SectionHeader";
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
 import { useAccount } from "wagmi";
+import dynamic from 'next/dynamic';
+
 import {
   LineChart,
   Line,
@@ -21,17 +23,37 @@ import {
 } from "recharts";
 import Typography from "@mui/material/Typography";
 import { makeStyles } from "@mui/styles";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import Confetti from 'react-dom-confetti';
+import 'leaflet/dist/leaflet.css';
 
 
+const MapContainer = dynamic(() => import('components/MapComponent'), {
+    ssr: false, 
+  });
 import PeopleIcon from "@mui/icons-material/People";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 
-import { PieChart, Pie, Sector, Cell, ResponsiveContainer } from "recharts";
 import { abi, contractAddresses, rpc_url, polygon_rpc_url} from "util/contract.js";
 
 
 import Web3 from "web3";
+const tableRow = [
+  {
+    id: 1,
+    verificationMethod: "Method A",
+    perilCovered: "Peril A",
+    location: [51.505, -0.09],
+  }
 
+];
 const useStyles = makeStyles((theme) => ({
   gradientText: {
     backgroundClip: "text",
@@ -47,7 +69,7 @@ function DashboardPage(props) {
   const [contractAddress, setcontractAddress] = useState(null)
 
   const { chain, chains } = useNetwork();
-  const [bondName, setBondName] = useState("")
+  const [bondName, setBondName] = useState("Bond 1")
 
 
   const classes = useStyles();
@@ -119,7 +141,7 @@ let bond_id
           />
 
           <Grid container={true} spacing={4}>
-            <Grid item={true} xs={12} md={8}>
+            <Grid item={true} xs={12} md={7}>
               <Card>
                 <CardContent sx={{}}>
                   <Box>
@@ -134,11 +156,11 @@ let bond_id
 
                   
                     <LineChart
-                      width={700}
+                      width={600}
                       height={400}
                       data={data}
                       margin={{
-                        top: 5,
+                        top: 20,
                         right: 30,
                         left: 20,
                         bottom: 5,
@@ -158,78 +180,93 @@ let bond_id
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item={true} xs={12} md={4}>
+            <Grid item={true} xs={12} md={5}>
               <Grid item mb={2}>
                 <Card>
                   <CardContent sx={{ padding: 3 }}>
-                    <Box display="flex" alignItems="center">
-                      <AccountBalanceWalletIcon />
+                    {/* Buy or sell short tranches */}
+                    <Table>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Class A</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>   <Button variant="contained" color="secondary" sx={{ marginBottom: 1, width: '100%' }}>
+                        Buy @ $90
+                      </Button></TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>   <Button variant="contained" color="secondary" sx={{ marginBottom: 1, width: '100%' }}>
+                        Sell @ $90
+                      </Button></TableCell>
+                     
+                   
 
-                      <Typography
-                        component={"span"}
-                        sx={{ fontWeight: "bold", marginLeft: 2 }}
-                      >
-                        <strong
-                          style={{ fontWeight: "bold", padding: 3, ML: 5 }}
-                        >
-                          Committed Capital:
-                        </strong>
-                      </Typography>
-                      <Typography
-                        component={"span"}
-                        sx={{ fontWeight: "bold", marginLeft: 2 }}
-                        className={classes.gradientText}
-                      >
-                       22
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item mb={2}>
-                <Card>
-                  <CardContent sx={{ padding: 3 }}>
-                    <Box>
-                      <Box display="flex" alignItems="center">
-                        <PeopleIcon />
+                      </TableRow>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Class B</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>   <Button variant="contained" color="secondary" sx={{ marginBottom: 1, width: '100%' }}>
+                        Buy @ $90
+                      </Button></TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>   <Button variant="contained" color="secondary" sx={{ marginBottom: 1, width: '100%' }}>
+                        Sell @ $90
+                      </Button></TableCell>
+                     
+                   
 
-                        <Typography
-                          component={"span"}
-                          sx={{ fontWeight: "bold", marginLeft: 2 }}
-                        >
-                          <strong
-                            style={{ fontWeight: "bold", padding: 3, ML: 5 }}
-                          >
-                            Deadline:
-                          </strong>
-                        </Typography>
-                        <Typography
-                          component={"span"}
-                          sx={{ fontWeight: "bold", marginLeft: 2 }}
-                          className={classes.gradientText}
-                        >
-                         Ye
-                        </Typography>
-                      </Box>
-                    </Box>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Class C</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>   <Button variant="contained" color="secondary" sx={{ marginBottom: 1, width: '100%' }}>
+                        Buy @ $90
+                      </Button></TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>   <Button variant="contained" color="secondary" sx={{ marginBottom: 1, width: '100%' }}>
+                        Sell @ $90
+                      </Button></TableCell>
+                     
+                   
+
+                      </TableRow>
+                      
+                      
+                    </TableBody>
+                  </Table>
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid item mb={4}>
-                <Card>
-                  <CardContent sx={{ padding: 3 }}>
-                    <Box>
-                    
-                    </Box>
-                  </CardContent>
-                </Card>
               </Grid>
-            </Grid>
+          
+      
             <Grid item={true} xs={12} md={12}>
               <Card>
                 <CardContent sx={{ padding: 3 }}>
+                  {/* Table with verification method, peril covered, and a map */}
                   <Box>
-                   
+                    <Typography
+                      component={"span"}
+                      sx={{ fontWeight: "bold", mb: 2 }}
+                    >
+                      Verification Method, Peril Covered and Location
+                    </Typography>
+                    <Table>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Bond Name</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Bond Name</TableCell>
+
+                      </TableRow>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Bond Name</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Bond Name</TableCell>
+
+                      </TableRow>
+                      <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Location</TableCell>
+
+                        <TableCell align="right" style={{ height: '300px' }}>
+                        <MapContainer className={classes.mapContainer} />
+
+                    </TableCell>
+                      </TableRow>
+                      
+                    </TableBody>
+                  </Table>
                   </Box>
                 </CardContent>
               </Card>
