@@ -1,6 +1,6 @@
 import React from "react";
 import { ThemeProvider } from "util/theme";
-import Navbar2 from "components/Navbar2";
+import Navbar2 from "components/Navbar";
 import Footer from "components/Footer";
 import "@rainbow-me/rainbowkit/styles.css";
 import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
@@ -17,7 +17,7 @@ const { chains, provider } = configureChains(
 );
 
 const { connectors } = getDefaultWallets({
-  appName: "My RainbowKit App",
+  appName: "CatExchange",
   chains,
 });
 
