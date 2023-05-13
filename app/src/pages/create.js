@@ -125,6 +125,8 @@ function DashboardPage(props) {
   const [endDate, setEndDate] = useState(new Date().setFullYear(new Date().getFullYear() + 1));
   const [frequency, setFrequency] = useState(5);
   const [bondAmount, setBondAmount] = useState(100);
+  const [bondDescription, setBondDescription] = useState();
+
   const [premiumValue, setPremiumValue] = useState(3);
   const [estimatedYield, setEstimatedYield] = useState(0);
   const [graphData, setGraphData] = useState([]);
@@ -148,7 +150,7 @@ const [holder, setHolder] = useState("0x2D41164fDe069d7177105753CE333c73332c6456
     typeHash: ethers.utils.formatBytes32String("category"), 
     paymentFrequency: ethers.BigNumber.from(frequencyToSeconds(frequency).toString()), //complete
     size: ethers.BigNumber.from(stringAmount), //complete
-    underlying: "0x5B1F146caAAD62C4EE1fC9F29d9414B6Ed530Ac6", 
+    underlying: "0x5B1F146caAAD62C4EE1fC9F29d9414B6Ed530Ac6", //update when necessary
     statement: "BigHurricane23", 
     category: [ethers.BigNumber.from("1")], // group
     premiums: [ethers.BigNumber.from("300")], // number
@@ -257,7 +259,9 @@ const storePolicy = async (policy) => {
   const handleFrequency = (event, value) => {
     setFrequency(value);
 };
-
+const handleDescription= (event) => {
+    setBondDescription(event);
+};
 
 function frequencyToSeconds(frequency) {
     let frequencyInSeconds;
@@ -430,6 +434,18 @@ console.log(endDate)
                                 <PerilSelection selectedPeril={selectedPeril} onPerilSelect={handlePerilSelect} />
                             </TableCell>
                             </TableRow>
+                            <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Confirmation Description</TableCell>
+                        <TableCell align="right">
+                          <TextField
+                            fullWidth
+                            type="text"
+                            value={bondDescription}
+                            onChange={handleDescription}
+                            inputProps={{ min: 0 }}
+                          />
+                        </TableCell>
+                      </TableRow>
                       <TableRow>
                         <TableCell sx={{ fontWeight: 'bold' }}>Bond Amount</TableCell>
                         <TableCell align="right">

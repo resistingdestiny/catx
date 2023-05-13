@@ -24,7 +24,7 @@ import Paper from "@mui/material/Paper";
 import Web3 from 'web3';
 import { useNetwork } from 'wagmi'
 import {  Multicall} from 'ethereum-multicall';
-import { contract, rpc_url, abi } from "../util/contract";
+import { contract, rpc_url, abi, abiContract } from "../util/contract";
 
 
 
@@ -53,7 +53,7 @@ const useStyles = makeStyles((theme) => ({
     const contractAddress = '0x64318f50569d490B4382d23cb2239F851Ba4d984'
 
     const [frog, setFrog] = useState('')
-    const getAllPolicies = async (rpc_url, contract_address, abi) => {
+    const getAllPolicies = async (rpc_url, contract_address, abi, abiContract) => {
       // Instantiate web3 with HttpProvider
       const web3 = new Web3(new Web3.providers.HttpProvider(rpc_url));
   
@@ -70,19 +70,26 @@ const useStyles = makeStyles((theme) => ({
       });
       console.log('events', events)
   
-      // Array to hold all policies
-      let policies = [];
-  
-      // Loop through each event and extract the policy data
-      events.forEach(event => {
-          const policy = event.returnValues.policyStruct;
-          policies.push(policy);
-      });
-        setFrog(policies)
-        console.log('frog', frog)
-      return policies;
-  }
- 
+      const policies = [];
+
+        for (const event of events) {
+          // Use the correct variable from your event log
+          const policyContractAddress = event.returnValues.policy;
+
+          // Instantiate the policy contract
+          const policyContract = new web3.eth.Contract(abiContract, policyContractAddress);
+
+          // Call a method on the policy contract to fetch data
+          // The exact method call depends on your contract's ABI
+          const policyData = await policyContract.methods.POLICY().call();
+
+          policies.push(policyData);
+        }
+
+        setFrog(policies);
+        return policies;
+        }
+      
 
 
     function descendingComparator(a, b, orderBy) {
@@ -116,7 +123,7 @@ const useStyles = makeStyles((theme) => ({
 const web3 = new Web3();
 const [rows, setRows] = useState([]);
 useEffect(() => {
-  getAllPolicies(rpc_url, contractAddress, abi)
+  getAllPolicies(rpc_url, contractAddress, abi, abiContract)
       .then(policies => {
           // Do something with the policies
           console.log('fish', policies.events);

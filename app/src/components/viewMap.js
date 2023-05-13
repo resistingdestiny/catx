@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Circle, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet'; // you'll need to import Leaflet to create a new DivIcon
 import axios from 'axios';
+import { useMap } from 'react-leaflet';
 
 export default function MapComponent(props) {
   const [center, setCenter] = useState([51.505, -0.09]);
@@ -9,35 +10,12 @@ export default function MapComponent(props) {
   const [what3words, setWhat3words] = useState("");
   const [radiusInKm, setRadiusInKm] = useState(radius / 1000);  
   const [markerPos, setMarkerPos] = useState(null); // holds the position of the marker
-
-  function MapEvents() {
-    const map = useMapEvents({
-      click: async (e) => {
-        const newRadius = radius + 1000; 
-        setRadius(newRadius); 
-        setRadiusInKm(newRadius / 1000); 
-        setCenter(e.latlng);
-        setMarkerPos(e.latlng); // set the marker position to the clicked location
-
-        try {
-          const response = await axios.get(`https://api.what3words.com/v3/convert-to-3wa?coordinates=${e.latlng.lat}%2C${e.latlng.lng}&key=NABAUHO2`);
-          setWhat3words(response.data.words);
-        } catch (error) {
-          console.error("Error fetching what3words data", error);
-        }
-      },
-      contextmenu: (e) => {
-        const newRadius = Math.max(radius - 1000, 1000);
-        setRadius(newRadius);  
-        setRadiusInKm(newRadius / 1000);
-      },
-    });
-
+  function ChangeView({ center, zoom }) {
+    const map = useMap();
+    map.setView(center, zoom);
     return null;
   }
-
-  props.setRadiusInKm(radiusInKm);
-  props.setWhat3Words(what3words);
+  
 
   // create a new DivIcon instance with our custom HTML
   const catIcon = new L.DivIcon({
@@ -45,13 +23,28 @@ export default function MapComponent(props) {
     html: "😺", // this will be the marker icon
     iconSize: [30, 30], // size of the icon in pixels
   });
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`https://api.what3words.com/v3/convert-to-coordinates?words=${props.what3words.join('.')}&key=NABAUHO2`);
+        console.log(response)
+        setCenter([response.data.coordinates.lat, response.data.coordinates.lng]);
+      } catch (error) {
+        console.error("Error fetching coordinates data", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
-    <MapContainer center={center} zoom={9} style={{ height: "300px", width: "100%" }}>
+    <MapContainer center={center} zoom={9} style={{ height: "200px", width: "100%" }}>
+       <ChangeView center={center} zoom={9} />
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <MapEvents />
+    
       <Circle center={center} radius={radius} />
       {markerPos && <Marker position={markerPos} icon={catIcon} />} 
     </MapContainer>
