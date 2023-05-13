@@ -68,6 +68,7 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
 
     function initializePolicy() external returns (bool) {
         require(!initialized, "Policy already initialized"); // Ensures this function can only be called once
+        initialized = true;
         require(msg.sender == factory, "Policy must be initialized by factory");
         Policy memory policy = POLICY(); // Loading policy to memory
         // Mint bond tokens according to metadata
