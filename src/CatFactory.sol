@@ -1,7 +1,21 @@
 // SPDX-License-Identifier: Unlicensed
 pragma solidity 0.8.16;
 
+// ========== Contracts ==========
+
+import {Cat} from "./Cat.sol";
+
 contract CatFactory {
+    // ========== Constants ==========
+
+    address immutable CAT_SINGLETON; // Stores the address of the abstract cat contract deployed in the constructor
+
+    // ========== Constructor ==========
+    constructor() {
+        // Deploy cat singleton
+        CAT_SINGLETON = address(new Cat());
+        require(CAT_SINGLETON != address(0), "Unable to deploy CAT_SINGLETON");
+    }
 
     // ========== Private functions ==========
 
