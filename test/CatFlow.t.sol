@@ -6,6 +6,7 @@ import "forge-std/console.sol";
 
 import "../src/CatFactory.sol";
 import "../src/Cat.sol";
+import "../src/interfaces/ICat.sol";
 import "forge-std/console.sol";
 
 contract CatFlow is Test {
@@ -20,10 +21,8 @@ contract CatFlow is Test {
     }
 
     // deploy cat contract
-    function test_deployCat() public {
-        catContract = new Cat();
-        console.log(address(this));
-        console.log("deployed");
+    function test_deployCat(ICat.Policy memory policyStruct) public {
+        factory.createPolicy(policyStruct);
         assert(address(this) != address(0));
     }
 
@@ -35,9 +34,13 @@ contract CatFlow is Test {
     // // investors can withdraw while filling (ie '!filled')
 
     // switch new state variable ('filled'?) to 'true'
+
     // policy holder pays first premium payment, calls initializeCat() and policy begins
-    // investor's funds depoisted to aave to earn yield
+    // **investor's funds deposited to aave to earn yield**
+
     // policy holder 'credits/account' decays at mean premium rate
+    function test_policyDecay() public {}
+
     // policy holder 'credits/account' is topped up by calling payPremium()
 
     // policy cancelled ('settled' set to true) when:
