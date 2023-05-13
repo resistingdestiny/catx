@@ -98,6 +98,8 @@ function DashboardPage(props) {
     const [isCelebrating, setIsCelebrating] = useState(false);
 
   const [successAlertOpen, setSuccessAlertOpen] = useState(false);
+  const [what3words, setWhat3Words] = useState("")
+  const [radiusInKm, setRadiusInKm] = useState("")
   const [successMessage, setSuccessMessage] = useState(false);
   const [bondName, setBondName] = useState("");
   const [endDate, setEndDate] = useState(new Date().setFullYear(new Date().getFullYear() + 1));
@@ -465,9 +467,11 @@ const calculateYield = () => {
                   <Table>
                     <TableBody>
                     <TableRow>
-                        <TableCell align="right" style={{ height: '300px' }}>
-                        <MapContainer className={classes.mapContainer} />
-
+                        <TableCell align="center" style={{ height: '300px' }}>
+                        <MapContainer setRadiusInKm={setRadiusInKm} setWhat3Words={setWhat3Words} className={classes.mapContainer} />
+                        <Typography sx={{ fontWeight: 'bold', mt: 2}}>{what3words} </Typography>
+                        <Typography sx={{ fontWeight: 'bold' }}>{radiusInKm} km radius</Typography>
+                     
                     </TableCell>
                       </TableRow>
 
