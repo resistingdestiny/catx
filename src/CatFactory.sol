@@ -8,7 +8,15 @@ import {Cat, ICat} from "./Cat.sol";
 contract CatFactory {
     // ========== Constants ==========
 
-    address immutable CAT_SINGLETON; // Stores the address of the abstract cat contract deployed in the constructor
+    address public immutable CAT_SINGLETON; // Stores the address of the abstract cat contract deployed in the constructor
+
+    // ========== State variables ==========
+
+    address[] policies;
+
+    // ========== Events ==========
+
+    event NewPolicy (uint indexed nonce, address indexed policy, ICat.Policy indexed policyStruct );
 
     // ========== Constructor ==========
     constructor() {
@@ -21,10 +29,13 @@ contract CatFactory {
 
     // ========== External ==========
 
-    function createPolicy(ICat.Policy calldata) external returns (address policy) {
+    function createPolicy(ICat.Policy calldata policyStruct) external returns (address policy) {
         // Deploy policy as metaproxy
         policy = _metaProxyFromCalldata(CAT_SINGLETON);
         require(policy != address(0), "Unable to deploy policy");
+        // Add policy to policies array and emit event
+        policies.push(policy);
+        emit NewPolicy(policies.length, policy, policyStruct);
     }
 
     // ========== Private ==========

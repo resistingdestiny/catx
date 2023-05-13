@@ -4,7 +4,8 @@ pragma solidity 0.8.16;
 interface ICat {
     // Ideally should contain immutable data only (removed settled for this reason)
     struct Policy {
-        // tried to pack a bit efficiently:
+        string name;
+        uint expiry; // unix timestamp of bond expiry
         address holder; // address of policy holder (deployer)
         bytes32 typeHash; // hash of type of catastrophe e.g hurricane
         uint paymentFrequency; // payment frequency in seconds
@@ -13,15 +14,23 @@ interface ICat {
         string statement; // UMA text statement
         uint[] category; // category of catastrophe e.g (hurricane) category 3
         uint[] premiums; // set of three premiums (one for each tier)
+        Loc[] location;
+    }
+
+    struct Loc {
+        string[] whatThreeWords;
+        uint radius;
     }
 
     function settled() external view returns (bool);
 
-    function reserves(uint) external view returns (uint);
+    function totalReserves() external view returns (uint);
+
+    function categoryReserves(uint) external view returns (uint);
 
     function reservesPerShare(uint) external view returns (uint);
 
-    function getPolicy() external view returns (Policy memory);
+    function POLICY() external view returns (Policy memory);
 
     function payPremium(uint) external; // allows policy holder to pay premium
 
