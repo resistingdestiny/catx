@@ -41,7 +41,7 @@ function Navbar2(props) {
                   component="img"
                   src={logo}
                   alt="Logo"
-                  sx={{ height: 28 }}
+                  sx={{ height: 30 }}
                 />
               </a>
             </Link>

@@ -3,6 +3,7 @@ import HeroSection from "components/HeroSection";
 import ContentCardsSection from "components/ContentCardsSection";
 import StatsSection from "components/StatsSection";
 import { makeStyles } from "@mui/styles";
+import Integrations from "components/Integrations";
 function IndexPage(props) {
   const useStyles = makeStyles((theme) => ({
     gradientText: {
@@ -18,6 +19,7 @@ function IndexPage(props) {
     bgColor="primary"
     size="medium"
     bgImage=""
+    logo="logo.png"
     bgImageOpacity={1}
     title="Cat Exchange"
     subtitle="Buy, tade and exchange cat bonds."
@@ -27,6 +29,7 @@ function IndexPage(props) {
     buttonPath="/pricing"
     useStyles = {useStyles}
   />
+  <Integrations />
  
  
 

@@ -75,7 +75,7 @@ function Footer(props) {
                 component="img"
                 src={logo}
                 alt="Logo"
-                sx={{ display: "block", height: "32px" }}
+                sx={{ display: "block", height: "40px" }}
               />
             </a>
           </Link>

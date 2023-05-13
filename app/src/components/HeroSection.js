@@ -10,7 +10,10 @@ import Typography from "@mui/material/Typography";
 
 function HeroSection(props) {
     const classes = props.useStyles();
-
+    const logo =
+    props.logoInverted && theme.name === "dark"
+      ? props.logoInverted
+      : props.logo;
   return (
     <Section
       bgColor={props.bgColor}
@@ -23,14 +26,22 @@ function HeroSection(props) {
           <Grid container={true} item={true} direction="column" xs={12} md={12}>
             <Box sx={{ textAlign: { xs: "center", md: "center"} }}>
                 <Box>
-            <Typography variant="h2"  sx={{ fontWeight: "bold", mt: 8, mb: 4}} className={classes.gradientText} align="center">Cat Bond Exchange
+                <a>
+                <Box
+                  component="img"
+                  src={logo}
+                  alt="Logo"
+                  sx={{ height: 100 }}
+                />
+              </a>
+            <Typography variant="h4"  sx={{ fontWeight: "bold", mt: 3, mb: 4}} className={classes.gradientText} align="center">Next Generation Catastrophe Bonds
 </Typography>
-            <Typography variant="p"   align="center">Exchange Cat Bonds
+            <Typography variant="p"   align="center">Earn a yield by managing the world's risk, securely, easily and with low fees.
 </Typography>
 
             </Box>
  <Box sx={{mt: 4}}>
-              <Link href="/viewall" passHref={true}>
+              <Link href="/create" passHref={true}>
                 <Button
                   variant="contained"
                   size="large"
