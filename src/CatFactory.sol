@@ -8,6 +8,8 @@ import {Cat, ICat} from "./Cat.sol";
 contract CatFactory {
     // ========== Constants ==========
 
+    uint public constant maxPremium = 2500;
+    
     address public immutable CAT_SINGLETON; // Stores the address of the abstract cat contract deployed in the constructor
 
     // ========== State variables ==========
@@ -30,6 +32,10 @@ contract CatFactory {
     // ========== External ==========
 
     function createPolicy(ICat.Policy calldata policyStruct) external returns (address policy) {
+        // Check that premiums are valid
+        _checkPremiums(policyStruct.premiums);
+        // Check that size isn't too lrage
+        require(policyStruct.size <= 2**128, "Size too large, max 2^128");
         // Deploy policy as metaproxy
         policy = _metaProxyFromCalldata(CAT_SINGLETON);
         require(policy != address(0), "Unable to deploy policy");
@@ -38,6 +44,14 @@ contract CatFactory {
         emit NewPolicy(policies.length, policy, policyStruct);
         // Initialize policy
         require(ICat(policy).initializePolicy(), "Unable to deploy policy");
+    }
+
+    // ========== Internal ==========
+
+    function _checkPremiums(uint[3] memory premiums) internal pure {
+      for (uint i = 0; i < 3; i++) {
+        require(premiums[i] <= maxPremium, "Premiums too large, max 25%");
+      }
     }
 
     // ========== Private ==========

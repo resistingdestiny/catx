@@ -46,7 +46,7 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
 
     uint public lastPremiumPaymentTime;
 
-    uint rateSum;
+    uint rateSum; // Sum of the rates
 
     // ========== Functions ==========
 
@@ -74,15 +74,13 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
         }
         _mintBatch(address(this), classList, classBuckets, "");
         // Initialize reserves, reservesPerShare, excess, and last rebalance time
-        /*
         for (uint i = 0; i < policy.category.length; i++) {
             reserves.push(0);
             rateSum += policy.premiums[i];
         }
         premiumDecay =
-            ((rateSum / policy.category.length) * policy.size) /
-            BPS; //underlying tokens/year
-        */
+            ((rateSum / policy.category.length) * policy.size * 10**18) /
+            (BPS * secondsPerYear); //underlying tokens/second
         return true;
     }
 
@@ -174,7 +172,6 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
     function getPremiumAccountBalance() public view override returns (uint) {
         return
             premiumAccountBalance -
-            ((premiumDecay * (block.timestamp - lastPremiumPaymentTime)) /
-                secondsPerYear);
+            (premiumDecay * (block.timestamp - lastPremiumPaymentTime));
     }
 }
