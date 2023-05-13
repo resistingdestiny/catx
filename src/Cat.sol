@@ -10,15 +10,18 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {AncillaryData as ClaimData} from "./libraries/AncillaryData.sol";
 
 // ========== Contracts ==========
-import {ERC4626, ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
-import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import {ERC1155Supply} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+import {ERC1155Supply, ERC1155} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract Cat is ICat, ERC4626, ERC1155Supply, ReentrancyGuard {
+contract Cat is ICat, ERC1155Supply, ReentrancyGuard {
+    // ========== Constants ==========
+    uint BPS = 10000;
+    uint secondsPerYear = 3.154*10**7;
+
     // ========== State variables ==========
 
     /**
-     * @notice whether policy has been settled, initialised as false
+     * @notice whether policy has been settled, initialized as false
      * @notice one bool, ie single use policy
      */
     bool public settled;
@@ -39,9 +42,7 @@ contract Cat is ICat, ERC4626, ERC1155Supply, ReentrancyGuard {
 
     // ========== Constructor ==========
     constructor()
-        ERC4626(IERC20(address(0))) // Set to nil, override with metadata
         ERC1155("") // Also set to nil, override with metadata
-        ERC20("", "") // Also set to nil, override with metadata
     {}
 
     // ========== External ==========
@@ -53,12 +54,12 @@ contract Cat is ICat, ERC4626, ERC1155Supply, ReentrancyGuard {
         catInitialized = true;
         Policy memory policy = POLICY();
         // Initialize reserves, reservesPerShare, excess, and last rebalance time
-        for (uint i = 0; i < policy.category.length(); i++) {
+        for (uint i = 0; i < policy.category.length; i++) {
             reserves.push(0);
             rateSum = rateSum + policy.premiums[i];
         }
         premiumDecay =
-            ((rateSum / policy.category.length()) * policy.size) /
+            ((rateSum / policy.category.length) * policy.size) /
             BPS; //underlying tokens/year
         // Set lastRebalanceTime
         lastPremiumPaymentTime = block.timestamp;
@@ -88,14 +89,14 @@ contract Cat is ICat, ERC4626, ERC1155Supply, ReentrancyGuard {
         );
         uint premiumUnit = (amount * BPS) / rateSum;
         // assign tokens to respective categories
-        for (uint i = 0; i < policy.category.length(); i++) {
+        for (uint i = 0; i < policy.category.length; i++) {
             reserves[i] =
                 reserves[i] +
                 ((premiumUnit * policy.premiums[i]) / BPS);
         }
         // increase premium account balance
         premiumAccountBalance = getPremiumAccountBalance() + amount;
-        lastPremiumPaymentTime = block.timestamp();
+        lastPremiumPaymentTime = block.timestamp;
     }
 
     function requestPayout() external override returns (bytes32) {}

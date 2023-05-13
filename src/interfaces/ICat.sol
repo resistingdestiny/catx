@@ -30,7 +30,7 @@ interface ICat {
 
     function reservesPerShare(uint) external view returns (uint);
 
-    function getPolicy() external view returns (Policy memory);
+    function POLICY() external view returns (Policy memory);
 
     function payPremium(uint) external; // allows policy holder to pay premium
 
