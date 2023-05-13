@@ -49,6 +49,12 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
 
     uint rateSum; // Sum of the rates
 
+    // ========== Events ==========
+
+    event Invest(address indexed owner, address indexed receiver, uint[3] indexed amounts);
+
+    event Refund(address indexed owner, address indexed receiver, uint[3] indexed amounts);
+
     // ========== Functions ==========
 
     // ========== Constructor ==========
@@ -62,6 +68,7 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
 
     function initializePolicy() external returns (bool) {
         require(!initialized, "Policy already initialized"); // Ensures this function can only be called once
+        initialized = true;
         require(msg.sender == factory, "Policy must be initialized by factory");
         Policy memory policy = POLICY(); // Loading policy to memory
         // Mint bond tokens according to metadata
@@ -133,7 +140,7 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
 
     // ========== Public ==========
 
-    function invest(address receiver, uint[3] calldata amounts) external {
+    function invest(address owner, address receiver, uint[3] calldata amounts) external {
         // Load balances of bonds on contract
         uint[] memory classList = new uint[](3);
         uint[] memory amountsList = new uint[](3);
@@ -154,10 +161,31 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
         // Load policy to memory
         Policy memory policy = POLICY();
         // Transfer amounts to contract
-        SafeERC20.safeTransferFrom(IERC20(policy.underlying), msg.sender, address(this), totalAmount);
+        SafeERC20.safeTransferFrom(IERC20(policy.underlying), owner, address(this), totalAmount);
         // Transfer bond tokens to receiver
         safeBatchTransferFrom(address(this), receiver, classList, amountsList, "");
         // I think we populate reserves later since we are essentially issuing bonds 1 to 1 with collateral until then
+        emit Invest(owner, receiver, amounts);
+    }
+
+    function refund(address owner, address receiver, uint[3] calldata amounts) external {
+        require(!catInitialized, "Cannot obtain a refund if policy has started");
+        // Load class and amounts list to memory, also populating totalAmount as we go
+        uint[] memory classList = new uint[](3);
+        uint[] memory amountsList = new uint[](3);
+        uint totalAmount;
+        for (uint i = 0; i < 3; i++) {
+            classList[i] = i;
+            amountsList[i] = amounts[i];
+            totalAmount += amounts[i];
+        }
+        // Transfer bond tokens back to contract
+        safeBatchTransferFrom(owner, address(this), classList, amountsList, "");
+        // Load policy to memory
+        Policy memory policy = POLICY();
+        // Transfer amounts back to receiver
+        SafeERC20.safeTransferFrom(IERC20(policy.underlying), address(this), receiver, totalAmount);
+        emit Refund(owner, receiver, amounts);
     }
 
     function supportsInterface(

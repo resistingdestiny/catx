@@ -34,7 +34,7 @@ contract CatFactory {
     function createPolicy(ICat.Policy calldata policyStruct) external returns (address policy) {
         // Check that premiums are valid
         _checkPremiums(policyStruct.premiums);
-        // Check that size isn't too lrage
+        // Check that size isn't too large
         require(policyStruct.size <= 2**128, "Size too large, max 2^128");
         // Deploy policy as metaproxy
         policy = _metaProxyFromCalldata(CAT_SINGLETON);
