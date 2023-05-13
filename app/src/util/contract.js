@@ -15,7 +15,7 @@ const provider = new ethers.providers.JsonRpcProvider(
   "https://goerli.gateway.tenderly.co/3Ugz1n4IRjoidr766XDDxX"
 );
 
-const rpc_url = 'https://goerli.gateway.tenderly.co/3Ugz1n4IRjoidr766XDDxX';
+const rpc_url = 'https://goerli.gateway.tenderly.co/6C0B5upNFXEumeI9cjBqXm';
 const polygon_rpc_url = 'https://polygon.llamarpc.com';
 
 const abi = [

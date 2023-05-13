@@ -61,7 +61,13 @@ const useStyles = makeStyles((theme) => ({
       const contract = new web3.eth.Contract(abi, '0x64318f50569d490B4382d23cb2239F851Ba4d984');
       console.log('frog2', contract )
       // Get past events
-      const events = await contract.getPastEvents('NewPolicy');
+      const fromBlock = await web3.eth.getBlockNumber() - 1000;
+      const toBlock = 'latest';
+  
+      const events = await contract.getPastEvents('NewPolicy', {
+        fromBlock,
+        toBlock
+      });
       console.log('events', events)
   
       // Array to hold all policies
