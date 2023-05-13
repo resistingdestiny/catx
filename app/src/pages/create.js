@@ -15,7 +15,6 @@ import Button from "@mui/material/Button";
 import { useNetwork } from "wagmi";
 import { Typography, Chip } from "@mui/material";
 import { DatePicker } from "@mui/lab";
-import Web3 from 'web3';
 import TextField from '@mui/material/TextField';
 import { useForm } from "react-hook-form";
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
@@ -30,12 +29,12 @@ import { DateRange } from "@mui/icons-material";
 import { makeStyles } from '@mui/styles';
 import 'leaflet/dist/leaflet.css';
 import Confetti from 'react-dom-confetti';
-import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
-import { contract } from "../util/contract";
+import { contract, rpc_url, abi } from "../util/contract";
 import { useSigner } from "wagmi";
 import { ethers } from "ethers";
 import MenuItem from '@mui/material/MenuItem';
-
+import Tooltip from "@mui/material/Tooltip";
+import Web3 from "web3";
 const perils = [
     { id: 1, name: "Hurricane", icon: "images/hurricane.svg" },
     { id: 2, name: "Earthquake", icon: "images/earthquake.svg" },
@@ -50,28 +49,44 @@ const perils = [
     return new Web3Storage({ token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDU5ZkU4RjIyYmNiRGExRjQ1ZjZmNjM2MDdkZjE0MDg3RDYwQjM4MkMiLCJpc3MiOiJ3ZWIzLXN0b3JhZ2UiLCJpYXQiOjE2ODM5NzYyMTY3MTEsIm5hbWUiOiJDYXRFeGNoYW5nZSJ9.n_9Zpuca2CO_LBADxSIXkg6l4TcCUEEx3Dl2f-rRYAg' })
   }
 function PerilSelection({ selectedPeril, onPerilSelect }) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-        {perils.map((peril) => (
-          <Card key={peril.id} onClick={() => onPerilSelect(peril)} sx={{ width: '60px', height: '60px', borderRadius: '10px', borderColor: selectedPeril?.id === peril.id ? 'purple' : '#2F2F34', borderWidth: '2px', borderStyle: 'solid', marginRight: '8px', marginBottom: '8px' }}>
-           <CardMedia
-           sx={{
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            height: '100%', 
-            width: '100%',
-          }}
-  component="img"
- 
-  image={peril.icon}
-  alt={peril.name}
-/>
-         
+  return (
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+      {perils.map((peril) => (
+        <Tooltip title={peril.name} key={peril.id}>
+          <Card 
+            onClick={() => onPerilSelect(peril)}
+            sx={{
+              width: '60px',
+              height: '60px',
+              borderRadius: '10px',
+              borderColor: selectedPeril?.id === peril.id ? 'purple' : '#2F2F34',
+              borderWidth: '2px',
+              borderStyle: 'solid',
+              marginRight: '8px',
+              marginBottom: '8px',
+              
+            }}
+          >
+            <CardMedia
+              sx={{
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                height: '100%', 
+                width: '100%',
+                '&:hover': {
+                    borderColor: 'grey',
+                  },
+              }}
+              component="img"
+              image={peril.icon}
+              alt={peril.name}
+            />
           </Card>
-        ))}
-      </Box>
-    );
-  }
+        </Tooltip>
+      ))}
+    </Box>
+  );
+}
 const MapContainer = dynamic(() => import('components/MapComponent'), {
     ssr: false, 
   });
@@ -92,7 +107,9 @@ const MapContainer = dynamic(() => import('components/MapComponent'), {
 
   };
 
+
  
+
 function DashboardPage(props) {
    
     const { data: signer, isError, isLoading } = useSigner();
