@@ -11,7 +11,8 @@ import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
 import { useAccount } from "wagmi";
 import dynamic from 'next/dynamic';
-
+import Alert from "@mui/material/Alert";
+import Snackbar from "@mui/material/Snackbar";
 import {
   LineChart,
   Line,
@@ -38,6 +39,21 @@ import 'leaflet/dist/leaflet.css';
 const MapContainer = dynamic(() => import('components/MapComponent'), {
     ssr: false, 
   });
+  const confettiConfig = {
+    angle: 90,
+    spread: 360,
+    startVelocity: 20,
+    elementCount: 140,
+    dragFriction: 0.12,
+    duration: 5000,
+    stagger: 3,
+    width: "10px",
+    height: "10px",
+    perspective: "500px",
+    colors: ["#a864fd", "#29cdff", "#20b3ff", "#b4e33d", "#ef62d1", "#ff38ab", "#ff9d00", "#ffffff"],
+    origin: { y: 0, x: 0.5 }, 
+
+  };
 import PeopleIcon from "@mui/icons-material/People";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 
@@ -67,7 +83,10 @@ const useStyles = makeStyles((theme) => ({
 function DashboardPage(props) {
   const [rpc_address, setrpc_address] = useState(rpc_url)
   const [contractAddress, setcontractAddress] = useState(null)
+  const [isCelebrating, setIsCelebrating] = useState(false);
 
+  const [successAlertOpen, setSuccessAlertOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(false);
   const { chain, chains } = useNetwork();
   const [bondName, setBondName] = useState("Bond 1")
 

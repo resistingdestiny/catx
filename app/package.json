@@ -15,19 +15,14 @@
     "@mui/lab": "5.0.0-alpha.83",
     "@mui/material": "5.8.1",
     "@mui/styles": "5.8.0",
-    "@mui/x-data-grid": "^5.17.25",
-    "@mui/x-data-grid-generator": "^5.17.25",
-    "@mui/x-data-grid-pro": "^5.17.25",
+ 
     "@rainbow-me/rainbowkit": "^0.11.0",
-    "@stripe/stripe-js": "1.11.0",
     "analytics": "0.3.1",
     "date-fns": "^2.29.3",
     "ethereum-multicall": "^2.15.0",
     "ethers": "^5.7.2",
-    "firebase": "9.1.0",
-    "firebase-admin": "9.12.0",
+   
     "leaflet": "^1.9.3",
-    "mailchimp-api-v3": "1.14.0",
     "next": "12.0.2",
     "path-parser": "6.1.0",
     "query-string": "6.13.8",
@@ -39,7 +34,6 @@
     "react-query": "3.32.1",
     "react-scripts": "^5.0.1",
     "recharts": "^2.4.3",
-    "stripe": "8.132.0",
     "use-local-storage-state": "9.0.2",
     "wagmi": "^0.11.7",
     "web3": "^1.8.2"
@@ -48,5 +42,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start"
+  },
+  "devDependencies": {
+    "react-dom-confetti": "^0.2.0"
   }
 }

@@ -22,15 +22,44 @@ import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import Slider from '@mui/material/Slider';
 import dynamic from 'next/dynamic';
-
+import { CardMedia } from "@mui/material";
+import { Box } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import Snackbar from "@mui/material/Snackbar";
 import { DateRange } from "@mui/icons-material";
 import { makeStyles } from '@mui/styles';
 import 'leaflet/dist/leaflet.css';
 import Confetti from 'react-dom-confetti';
+import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
+
+const perils = [
+    { id: 1, name: "Hurricane", icon: "path_to_hurricane_icon" },
+    { id: 2, name: "Earthquake", icon: "path_to_earthquake_icon" },
+    { id: 3, name: "Wildfire", icon: "path_to_wildfire_icon" },
+    { id: 4, name: "Flood", icon: "path_to_flood_icon" },
+    // Add other perils here
+  ];
 
 
+function PerilSelection({ selectedPeril, onPerilSelect }) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+        {perils.map((peril) => (
+          <Card key={peril.id} onClick={() => onPerilSelect(peril)} sx={{ width: '60px', height: '60px', borderRadius: '10px', borderColor: selectedPeril?.id === peril.id ? 'purple' : 'white', borderWidth: '2px', borderStyle: 'solid', marginRight: '8px', marginBottom: '8px' }}>
+            <CardMedia
+              component="img"
+              height="40"
+              image={peril.icon}
+              alt={peril.name}
+            />
+            <Typography variant="caption" display="block" textAlign="center">
+              {peril.name}
+            </Typography>
+          </Card>
+        ))}
+      </Box>
+    );
+  }
 const MapContainer = dynamic(() => import('components/MapComponent'), {
     ssr: false, 
   });
@@ -57,11 +86,18 @@ function DashboardPage(props) {
 
   const [successAlertOpen, setSuccessAlertOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState(false);
-  const [bondName, setBondName] = useState(false);
-  const [endDate, setEndDate] = useState(new Date().setDate(new Date().getDate() + 1));
-  const [frequency, setFrequency] = useState(1);
-
+  const [bondName, setBondName] = useState("");
+  const [endDate, setEndDate] = useState(new Date().setFullYear(new Date().getFullYear() + 1));
+  const [frequency, setFrequency] = useState(5);
+  const [bondAmount, setBondAmount] = useState(100);
+  const [premiumValue, setPremiumValue] = useState(3);
+  const [estimatedYield, setEstimatedYield] = useState(0);
+  const [graphData, setGraphData] = useState([]);
   const { handleSubmit, register, errors, reset } = useForm();
+  const [selectedPeril, setSelectedPeril] = useState(null);
+  const handlePerilSelect = (perilId) => {
+    setSelectedPeril(perilId);
+  };
 
 
 
@@ -81,13 +117,19 @@ function DashboardPage(props) {
 
   const { chain, chains } = useNetwork();
   const [connected, setConnected] = useState(false);
-
+  const [totalReturn, setTotalReturn] = useState(0);
+  const [chartData, setChartData] = useState([]);
+  const router = useRouter();
 
   //
   const web3 = new Web3();
   const [rows, setRows] = useState([]);
 
 
+  useEffect(() => {
+    calculateYield();
+    generateChartData();
+  }, [bondAmount, premiumValue, frequency, endDate]);
  
   const handleCloseSuccessAlert = (event, reason) => {
     if (reason === "clickaway") {
@@ -108,8 +150,60 @@ function DashboardPage(props) {
 };
 
 
+const calculateYield = () => {
+    const bondAmountValue = parseFloat(bondAmount);
+    const premiumValueValue = parseFloat(premiumValue);
+    const duration = (endDate - new Date()) / (1000 * 60 * 60 * 24); // Duration in days
+  
+    let paymentFrequencyInDays;
+    switch (frequency) {
+      case 1:
+        paymentFrequencyInDays = 1 / 24; // Hourly
+        break;
+      case 2:
+        paymentFrequencyInDays = 1; // Daily
+        break;
+      case 3:
+        paymentFrequencyInDays = 30; // Monthly
+        break;
+      case 4:
+        paymentFrequencyInDays = 30 * 3; // Quarterly
+        break;
+      case 5:
+        paymentFrequencyInDays = 365; // Yearly
+        break;
+      default:
+        paymentFrequencyInDays = 1;
+    }
+  
+    const totalPayments = Math.floor(duration / paymentFrequencyInDays);
+    const totalReturn = totalPayments * premiumValueValue;
+  
+    const totalReturnPercentage = (totalReturn / bondAmountValue) * 100;
+  
+    setTotalReturn(totalReturnPercentage);
+  };
+  
+  
 
+  const generateChartData = () => {
+    const data = [];
+    const duration = (endDate - new Date()) / (1000 * 60 * 60 * 24); // Duration in days
 
+    for (let i = 0; i <= duration; i++) {
+      const dayReturn = (i / duration) * totalReturn;
+      data.push({ day: i, return: dayReturn });
+    }
+
+    setChartData(data);
+  };
+  const handleBondAmount = (event) => {
+    setBondAmount(Number(event.target.value));
+  };
+
+  const handlePremiumValue = (event) => {
+    setPremiumValue(Number(event.target.value));
+  };
 
   //////////////////////////////////////////////
 
@@ -118,10 +212,13 @@ function DashboardPage(props) {
     try {
 
      
-        setSuccessMessage('Ye boi'); // Update the success message
+        setSuccessMessage('Successfully created the bond'); // Update the success message
         setSuccessAlertOpen(true);
         setIsCelebrating(true);
-        setTimeout(() => setIsCelebrating(false), 3000); // Stop confetti after 3 seconds
+        setTimeout(() => {
+            setIsCelebrating(false);
+            router.push('/bond');
+          }, 3000); // Stop confetti after 3 seconds
   
        
     
@@ -190,25 +287,35 @@ function DashboardPage(props) {
                       </TableRow>
                  
                       <TableRow>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Bond Name</TableCell>
-                        <TableCell align="right">
-                          <TextField
-                            fullWidth
-                            type="text"
-                            value={bondName}
-                            onChange={handleName}
-                            inputProps={{ min: 0 }}
-                          />
-                        </TableCell>
-                      </TableRow>
+      <TableCell sx={{ fontWeight: 'bold' }}>Peril</TableCell>
+      <TableCell align="right">
+        <PerilSelection selectedPeril={selectedPeril} onPerilSelect={handlePerilSelect} />
+      </TableCell>
+    </TableRow>
                       <TableRow>
-                        <TableCell sx={{ fontWeight: 'bold' }} >Value of Premiums</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Bond Amount</TableCell>
                         <TableCell align="right">
-
-                         
-
+                            <TextField
+                            fullWidth
+                            type="number"
+                            value={bondAmount}
+                            onChange={handleBondAmount}
+                            inputProps={{ min: 0 }}
+                            />
                         </TableCell>
-                      </TableRow>
+                        </TableRow>
+                        <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Value of Premiums</TableCell>
+                        <TableCell align="right">
+                            <TextField
+                            fullWidth
+                            type="number"
+                            value={premiumValue}
+                            onChange={handlePremiumValue}
+                            inputProps={{ min: 0 }}
+                            />
+                        </TableCell>
+                        </TableRow>
                       <TableRow>
                         <TableCell sx={{ fontWeight: 'bold' }} >Frequency</TableCell>
                         <TableCell align="right">
@@ -297,6 +404,24 @@ function DashboardPage(props) {
 
                 </CardContent>
               </Card>
+              <Card>
+                <CardContent sx={{ padding: 3 }}>
+                  <Typography sx={{ fontWeight: 'bold' }}>Returns</Typography>
+                  <br></br>
+                  <Table>
+                    <TableBody>
+                    <TableRow>
+                    <TableCell>Total Cost</TableCell>
+                    <TableCell align="right">
+                        <span style={{ color: 'red', fontWeight: 'bold' }}>{totalReturn.toFixed(2)}%</span>
+                    </TableCell>
+                    </TableRow>
+                    </TableBody>
+                  </Table>
+                  
+                </CardContent>
+              </Card>
+
             </Grid>
          
 
