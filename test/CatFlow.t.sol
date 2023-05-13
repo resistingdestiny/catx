@@ -30,13 +30,11 @@ contract CatFlow is Test {
     // users deposit underlying tokens to cat contract, receiving bond tokens of chosen category
     function test_deposit() public {}
 
-    // cat
-
-    // users deposit underlying tokens to cat contract, receiving bond tokens of chosen category
     // continue until each category is filled with underlying tokens
-    // // investors can withdraw while filling (ie '!full')
 
-    // switch new state variable ('full'?) to 'true'
+    // // investors can withdraw while filling (ie '!filled')
+
+    // switch new state variable ('filled'?) to 'true'
     // policy holder pays first premium payment, calls initializeCat() and policy begins
     // investor's funds depoisted to aave to earn yield
     // policy holder 'credits/account' decays at mean premium rate

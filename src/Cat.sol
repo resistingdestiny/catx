@@ -17,7 +17,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
     // ========== Constants ==========
     uint constant BPS = 10000;
-    uint constant secondsPerYear = 3.154*10**7;
+    uint constant secondsPerYear = 3.154 * 10 ** 7;
     uint constant CLASS_A = 0;
     uint constant CLASS_B = 1;
     uint constant CLASS_C = 2;
@@ -36,7 +36,9 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
 
     bool public catInitialized;
 
-    uint[] public reserves;
+    uint[3] public reserves;
+
+    bool[3] public filled;
 
     uint premiumDecay; // decay of premium account balance
 
@@ -62,7 +64,8 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
         require(msg.sender == factory, "Policy must be initialized by factory");
         Policy memory policy = POLICY(); // Loading policy to memory
         // Mint bond tokens according to metadata
-        uint bucketPartition = (policy.size * 10**18) / policy.category.length;
+        uint bucketPartition = (policy.size * 10 ** 18) /
+            policy.category.length;
         uint[] memory classList = new uint[](3);
         uint[] memory classBuckets = new uint[](3);
         for (uint i = 0; i < 3; i++) {
@@ -132,7 +135,9 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
 
     // ========== Public ==========
 
-    function supportsInterface(bytes4 interfaceId) public view override(ERC1155, ERC1155Receiver) returns (bool) {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ERC1155, ERC1155Receiver) returns (bool) {
         return
             interfaceId == type(IERC1155).interfaceId ||
             interfaceId == type(IERC1155MetadataURI).interfaceId ||
