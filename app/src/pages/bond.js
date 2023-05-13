@@ -13,6 +13,10 @@ import { useAccount } from "wagmi";
 import dynamic from 'next/dynamic';
 import Alert from "@mui/material/Alert";
 import Snackbar from "@mui/material/Snackbar";
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
 import {
   LineChart,
   Line,
@@ -34,6 +38,8 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Confetti from 'react-dom-confetti';
 import 'leaflet/dist/leaflet.css';
+import Web3 from 'web3';
+import {  Multicall} from 'ethereum-multicall';
 
 
 const MapContainer = dynamic(() => import('components/viewMap'), {
@@ -57,10 +63,9 @@ const MapContainer = dynamic(() => import('components/viewMap'), {
 import PeopleIcon from "@mui/icons-material/People";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 
-import { abi, contractAddresses, rpc_url, polygon_rpc_url} from "util/contract.js";
+import { abi, contractAddresses, rpc_url, polygon_rpc_url, abiContract} from "util/contract.js";
 
 
-import Web3 from "web3";
 const tableRow = [
   {
     id: 1,
@@ -84,7 +89,7 @@ function DashboardPage(props) {
   const [rpc_address, setrpc_address] = useState(rpc_url)
   const [contractAddress, setcontractAddress] = useState(null)
   const [isCelebrating, setIsCelebrating] = useState(false);
-
+  const [stakeAmount, setStakeAmount] = useState(false);
   const [successAlertOpen, setSuccessAlertOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState(false);
   const { chain, chains } = useNetwork();
@@ -94,7 +99,7 @@ function DashboardPage(props) {
     holder: "0x2D41164fDe069d7177105753CE333c73332c6456", 
     typeHash: "123123", 
     paymentFrequency: "21313", //complete
-    size: "123123", //complete
+    size: "12223", //complete
     underlying: "0x5B1F146caAAD62C4EE1fC9F29d9414B6Ed530Ac6", //update when necessary
     statement: "BigHurricane23", 
     category: "234324", // group
@@ -136,12 +141,37 @@ let bond_id
 
 
 
+  const getPolicy = async (rpc_url, contract_address, abiContract) => {
+    // Instantiate web3 with HttpProvider
 
+       const policyContractAddress = "0x2AB335fF597BC477D94E55727EF39aB2bEf8a2D3"
+        // Instantiate the policy contract
+        const policyContract = new web3.eth.Contract(abiContract, policyContractAddress);
+        console.log('contrat', policyContract)
+        // Call a method on the policy contract to fetch data
+        // The exact method call depends on your contract's ABI
+        const policyData = await policyContract.methods.POLICY().call();
+
+       console.log('data', policyData)
+      }
+
+    
+      const [modalOpen, setModalOpen] = useState(false);
 
   const [graphData, setGraphData] = useState();
 
 
-
+  useEffect(() => {
+    getPolicy(rpc_url, contractAddress, abi, abiContract)
+        .then(policies => {
+            // Do something with the policies
+            console.log('fish', policies.events);
+        })
+        .catch(error => {
+            // Handle or log any errors
+            console.error(error);
+        });
+  }, []);
   
 
   
@@ -149,16 +179,20 @@ let bond_id
 
 
   let data = [
-    {name: 'Page A', classA: 4000, classB: 2400, classC: 2400},
-    {name: 'Page B', classA: 3000, classB: 1398, classC: 2210},
-    {name: 'Page C', classA: 2000, classB: 9800, classC: 2290},
-    {name: 'Page D', classA: 2780, classB: 3908, classC: 2000},
-    {name: 'Page E', classA: 1890, classB: 4800, classC: 2181},
-    {name: 'Page F', classA: 2390, classB: 3800, classC: 2500},
-    {name: 'Page G', classA: 3490, classB: 4300, classC: 2100},
+    {name: 'Value', classA: policy.size}
+   
   ];
   
   
+  function openStakeModal() {
+  
+    setModalOpen(true);
+  }
+
+  function closeStakeModal() {
+    setModalOpen(false);
+  
+  }
 console.log([policy.location[0].whatThreewords])
   return (
     <>
@@ -209,8 +243,7 @@ console.log([policy.location[0].whatThreewords])
                       <Tooltip />
                       <Legend />
                       <Line type="monotone" dataKey="classA" stroke="#8884d8" activeDot={{ r: 8 }} />
-                      <Line type="monotone" dataKey="classB" stroke="#82ca9d" />
-                      <Line type="monotone" dataKey="classC" stroke="#ffc658" />
+               
                     </LineChart>
 
                   </Box>
@@ -226,7 +259,7 @@ console.log([policy.location[0].whatThreewords])
                     <TableBody>
                       <TableRow>
                         <TableCell sx={{ fontWeight: 'bold' }}>Class A</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>   <Button variant="contained" color="secondary" sx={{ marginBottom: 1, width: '100%' }}>
+                        <TableCell sx={{ fontWeight: 'bold' }}>   <Button onClick={() => openStakeModal()} variant="contained" color="secondary" sx={{ marginBottom: 1, width: '100%' }}>
                         Buy 
                       </Button></TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>   <Button variant="contained" color="secondary" sx={{ marginBottom: 1, width: '100%' }}>
@@ -312,6 +345,73 @@ console.log([policy.location[0].whatThreewords])
             </Grid>
           </Grid>
         </Container>
+        <Dialog
+            open={modalOpen}
+            onClose={closeStakeModal}
+            aria-labelledby="staking-dialog"
+            maxWidth="lg"
+            fullScreen={false}
+            BackdropProps={{ style: { backgroundColor: "rgba(0, 0, 0, 0.7)" }}}
+          >
+         
+              <>
+                <DialogTitle id="staking-dialog">Stake in</DialogTitle>
+                
+                <DialogContent
+                
+                
+                >
+                   <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+                  
+                  <br></br>
+                  <TextField
+                    label="WBIT to Stake"
+                    value={stakeAmount}
+                    onChange={(e) => console.log('hello')}
+                    type="number"
+                    id="wbit-input"
+                    className="staking-amount-input"
+                    variant="outlined"
+                    fullWidth
+                    InputLabelProps={{
+                      style: { color: "white" }
+
+                    }}
+                  />
+                  <Typography>
+                  <br></br>
+                  Base Insurance Rate: 
+</Typography>
+              
+                </Box>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: "center" }}>
+                  <Button sx= {{color: "white"}} color="secondary" variant="outlined" onClick={closeStakeModal}>Cancel</Button>
+
+                  
+                  <Button variant="contained"
+                  sx={{
+                    backgroundImage: "linear-gradient(85.9deg, #6F00FF -14.21%, #8A2BE2 18.25%, #A020F0 52.49%, #BA55D3 81.67%, #C71585 111.44%)",
+                    color: 'white',
+                    mr: 0,
+                  }}  
+                  
+                  
+                  
+                  >
+                    Stake
+                  </Button>
+                </DialogActions>
+              </>
+         
+          </Dialog>
       </Section>
     </>
   );
