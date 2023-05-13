@@ -23,6 +23,8 @@ import { Typography, Chip } from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Web3 from 'web3';
 import { useNetwork } from 'wagmi'
+import {  Multicall} from 'ethereum-multicall';
+import { contract, rpc_url, abi } from "../util/contract";
 
 
 
@@ -45,7 +47,38 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+
+
   function DashboardPage(props) {
+    const contractAddress = '0x64318f50569d490B4382d23cb2239F851Ba4d984'
+
+    const [frog, setFrog] = useState('')
+    const getAllPolicies = async (rpc_url, contract_address, abi) => {
+      // Instantiate web3 with HttpProvider
+      const web3 = new Web3(new Web3.providers.HttpProvider(rpc_url));
+  
+      // Instantiate contract
+      const contract = new web3.eth.Contract(abi, '0x64318f50569d490B4382d23cb2239F851Ba4d984');
+      console.log('frog2', contract )
+      // Get past events
+      const events = await contract.getPastEvents('NewPolicy');
+      console.log('events', events)
+  
+      // Array to hold all policies
+      let policies = [];
+  
+      // Loop through each event and extract the policy data
+      events.forEach(event => {
+          const policy = event.returnValues.policyStruct;
+          policies.push(policy);
+      });
+        setFrog(policies)
+        console.log('frog', frog)
+      return policies;
+  }
+ 
+
+
     function descendingComparator(a, b, orderBy) {
       if (b[orderBy] < a[orderBy]) {
         return -1;
@@ -76,7 +109,17 @@ const useStyles = makeStyles((theme) => ({
 //
 const web3 = new Web3();
 const [rows, setRows] = useState([]);
-
+useEffect(() => {
+  getAllPolicies(rpc_url, contractAddress, abi)
+      .then(policies => {
+          // Do something with the policies
+          console.log('fish', policies.events);
+      })
+      .catch(error => {
+          // Handle or log any errors
+          console.error(error);
+      });
+}, []);
 const handleSort = (property) => (event) => {
   const isAsc = orderBy === property && order === 'asc';
   setOrder(isAsc ? 'desc' : 'asc');
