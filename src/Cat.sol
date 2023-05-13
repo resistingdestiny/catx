@@ -24,6 +24,9 @@ contract Cat is ICat, ERC4626, ERC1155 {
         {} 
 
     // ========== External ==========
+
+    function settled() external view returns (bool) {}
+
     function reserves(uint) external view override returns (uint) {}
 
     function reservesPerShare(uint) external view override returns (uint) {}
@@ -37,4 +40,27 @@ contract Cat is ICat, ERC4626, ERC1155 {
     function requestPayout() external override returns (bytes32) {}
 
     function assertionResolvedCallback(bytes32, bool) external override {}
+
+    // ========== Public ==========
+
+    /**
+     * @dev can be called to access the policy struct
+     * @dev assumed to be immutable
+     */
+    function POLICY() external pure returns (Policy memory policy) {
+        bytes memory data;
+        assembly {
+            let posOfMetadataSize := sub(calldatasize(), 32)
+            let size := calldataload(posOfMetadataSize)
+            let location := sub(posOfMetadataSize, size)
+            data := mload(64)
+            // increment free memory pointer by metadata size + 32 bytes (length)
+            mstore(64, add(data, add(size, 32)))
+            mstore(data, size)
+            let memPtr := add(data, 32)
+            calldatacopy(memPtr, location, size)
+        }
+        policy = abi.decode(data, (Policy));
+    }
+
 }
