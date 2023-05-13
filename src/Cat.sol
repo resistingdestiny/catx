@@ -8,6 +8,7 @@ import {OptimisticOracleV3Interface} from "./interfaces/OptimisticOracleV3Interf
 // ========== Libraries ==========
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {AncillaryData as ClaimData} from "./libraries/AncillaryData.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // ========== Contracts ==========
 import {ERC1155Supply, ERC1155, IERC1155, IERC1155MetadataURI} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
@@ -131,6 +132,33 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
     function assertionResolvedCallback(bytes32, bool) external override {}
 
     // ========== Public ==========
+
+    function invest(address receiver, uint[3] calldata amounts) external {
+        // Load balances of bonds on contract
+        uint[] memory classList = new uint[](3);
+        uint[] memory amountsList = new uint[](3);
+        address[] memory addressThisList = new address[](3);
+        for (uint i = 0; i < 3; i++) {
+            classList[i] = i;
+            addressThisList[i] = address(this);
+        }
+        uint[] memory bondsAvailable = balanceOfBatch(addressThisList, classList);
+        uint totalAmount;
+        // Check that amounts are less than or equal to the bonds available, populating amounts sum as we go,
+        // and loading amounts into memory
+        for (uint i = 0; i < 3; i++) {
+            require(bondsAvailable[i] >= amounts[i], "Insufficient bonds available");
+            totalAmount += amounts[i];
+            amountsList[i] = amounts[i];
+        }
+        // Load policy to memory
+        Policy memory policy = POLICY();
+        // Transfer amounts to contract
+        SafeERC20.safeTransferFrom(IERC20(policy.underlying), msg.sender, address(this), totalAmount);
+        // Transfer bond tokens to receiver
+        safeBatchTransferFrom(address(this), receiver, classList, amountsList, "");
+        // I think we populate reserves later since we are essentially issuing bonds 1 to 1 with collateral until then
+    }
 
     function supportsInterface(
         bytes4 interfaceId
