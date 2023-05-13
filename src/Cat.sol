@@ -39,8 +39,6 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
 
     uint[3] public reserves;
 
-    bool[3] public filled;
-
     uint premiumDecay; // decay of premium account balance
 
     uint public premiumAccountBalance;
@@ -139,12 +137,30 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
         emit Refund(owner, receiver, amounts);
     }
 
-    function initializeCat() external {
+    function initializeCat(uint amount) external {
         // Can only be called once
         require(!catInitialized, "Cat already initialized");
         catInitialized = true;
-        // Set lastRebalanceTime
-        lastPremiumPaymentTime = block.timestamp;
+        // Load class and addressThis list to memory
+        uint[] memory classList = new uint[](3);
+        address[] memory addressThisList = new address[](3);
+        for (uint i = 0; i < 3; i++) {
+            classList[i] = i;
+            addressThisList[i] = address(this);
+        }
+        // Require that contract has no further bonds on hand, loading total supply of bonds as we go
+        uint[] memory bondsAvailable = balanceOfBatch(addressThisList, classList);
+        uint totalBonds;
+        for (uint i = 0; i < 3; i++) {
+            require(bondsAvailable[i] == 0, "Bond still available");
+            totalBonds += totalSupply(i);
+        }
+        // Load policy into memory
+        Policy memory policy = POLICY();
+        // Load underying and require that underlying >= bonds 
+        require(IERC20(policy.underlying).balanceOf(address(this)) >= totalBonds, "Insufficient collateral");
+        // Make premium payment
+        payPremium(amount);
     }
 
     function totalReserves() external view override returns (uint) {
@@ -160,8 +176,15 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
 
     // create view function which gives current amount of collateral in pool.
 
-    function payPremium(uint amount) external override {
-        require(!settled, "bond already settled!");
+    function requestPayout() external override returns (bytes32) {}
+
+    function assertionResolvedCallback(bytes32, bool) external override {}
+
+    // ========== Public ==========
+
+    function payPremium(uint amount) public {
+        require(!settled, "Bond already settled!");
+        require(catInitialized, "Cat not initialized");
         Policy memory policy = POLICY();
         // get premium payment tokens on contract
         IERC20(policy.underlying).transferFrom(
@@ -180,12 +203,6 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
         premiumAccountBalance = getPremiumAccountBalance() + amount;
         lastPremiumPaymentTime = block.timestamp;
     }
-
-    function requestPayout() external override returns (bytes32) {}
-
-    function assertionResolvedCallback(bytes32, bool) external override {}
-
-    // ========== Public ==========
 
     function supportsInterface(
         bytes4 interfaceId
