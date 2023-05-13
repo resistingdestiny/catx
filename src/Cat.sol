@@ -18,7 +18,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
     // ========== Constants ==========
     uint constant BPS = 10000;
-    uint constant secondsPerYear = 3.154 * 10 ** 7;
+    uint constant year = 365 days;
     uint constant CLASS_A = 0;
     uint constant CLASS_B = 1;
     uint constant CLASS_C = 2;
@@ -87,58 +87,9 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
         }
         premiumDecay =
             ((rateSum / policy.category.length) * policy.size * 10**18) /
-            (BPS * secondsPerYear); //underlying tokens/second
+            (BPS * year); //underlying tokens/second
         return true;
     }
-
-    function initializeCat() external {
-        // Can only be called once
-        require(!catInitialized, "Cat already initialized");
-        // Set proxyInit true
-        catInitialized = true;
-        // Set lastRebalanceTime
-        lastPremiumPaymentTime = block.timestamp;
-    }
-
-    function totalReserves() external view override returns (uint) {
-        Policy memory policy = POLICY();
-        return IERC20(policy.underlying).balanceOf(address(this));
-    }
-
-    function reservesPerShare(
-        uint category
-    ) external view override returns (uint rps) {
-        rps = categoryReserves(category) / totalSupply(category); // beware rounding to zero
-    }
-
-    // create view function which gives current amount of collateral in pool.
-
-    function payPremium(uint amount) external override {
-        require(!settled, "bond already settled!");
-        Policy memory policy = POLICY();
-        // get premium payment tokens on contract
-        IERC20(policy.underlying).transferFrom(
-            msg.sender,
-            address(this),
-            amount
-        );
-        uint premiumUnit = (amount * BPS) / rateSum;
-        // assign tokens to respective categories
-        for (uint i = 0; i < policy.category.length; i++) {
-            reserves[i] =
-                reserves[i] +
-                ((premiumUnit * policy.premiums[i]) / BPS);
-        }
-        // increase premium account balance
-        premiumAccountBalance = getPremiumAccountBalance() + amount;
-        lastPremiumPaymentTime = block.timestamp;
-    }
-
-    function requestPayout() external override returns (bytes32) {}
-
-    function assertionResolvedCallback(bytes32, bool) external override {}
-
-    // ========== Public ==========
 
     function invest(address owner, address receiver, uint[3] calldata amounts) external {
         // Load balances of bonds on contract
@@ -187,6 +138,54 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
         SafeERC20.safeTransferFrom(IERC20(policy.underlying), address(this), receiver, totalAmount);
         emit Refund(owner, receiver, amounts);
     }
+
+    function initializeCat() external {
+        // Can only be called once
+        require(!catInitialized, "Cat already initialized");
+        catInitialized = true;
+        // Set lastRebalanceTime
+        lastPremiumPaymentTime = block.timestamp;
+    }
+
+    function totalReserves() external view override returns (uint) {
+        Policy memory policy = POLICY();
+        return IERC20(policy.underlying).balanceOf(address(this));
+    }
+
+    function reservesPerShare(
+        uint category
+    ) external view override returns (uint rps) {
+        rps = categoryReserves(category) / totalSupply(category); // beware rounding to zero
+    }
+
+    // create view function which gives current amount of collateral in pool.
+
+    function payPremium(uint amount) external override {
+        require(!settled, "bond already settled!");
+        Policy memory policy = POLICY();
+        // get premium payment tokens on contract
+        IERC20(policy.underlying).transferFrom(
+            msg.sender,
+            address(this),
+            amount
+        );
+        uint premiumUnit = (amount * BPS) / rateSum;
+        // assign tokens to respective categories
+        for (uint i = 0; i < policy.category.length; i++) {
+            reserves[i] =
+                reserves[i] +
+                ((premiumUnit * policy.premiums[i]) / BPS);
+        }
+        // increase premium account balance
+        premiumAccountBalance = getPremiumAccountBalance() + amount;
+        lastPremiumPaymentTime = block.timestamp;
+    }
+
+    function requestPayout() external override returns (bytes32) {}
+
+    function assertionResolvedCallback(bytes32, bool) external override {}
+
+    // ========== Public ==========
 
     function supportsInterface(
         bytes4 interfaceId
