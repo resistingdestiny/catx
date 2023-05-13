@@ -30,16 +30,7 @@ const wagmiClient = createClient({
 
 
 function MyApp({ Component, serverEmotionCache, pageProps }) {
-  React.useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://public.cypherd.io/js/onboardingsdk.js';
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    }
-  }, []);
+  
  
   return (
     <WagmiConfig client={wagmiClient}>

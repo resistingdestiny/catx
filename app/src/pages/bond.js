@@ -36,7 +36,7 @@ import Confetti from 'react-dom-confetti';
 import 'leaflet/dist/leaflet.css';
 
 
-const MapContainer = dynamic(() => import('components/MapComponent'), {
+const MapContainer = dynamic(() => import('components/viewMap'), {
     ssr: false, 
   });
   const confettiConfig = {
@@ -88,7 +88,25 @@ function DashboardPage(props) {
   const [successAlertOpen, setSuccessAlertOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState(false);
   const { chain, chains } = useNetwork();
-  const [bondName, setBondName] = useState("Bond 1")
+  let policy = {
+    name: "Bond 12", //complete
+    expiry: "112121", //complete
+    holder: "0x2D41164fDe069d7177105753CE333c73332c6456", 
+    typeHash: "123123", 
+    paymentFrequency: "21313", //complete
+    size: "123123", //complete
+    underlying: "0x5B1F146caAAD62C4EE1fC9F29d9414B6Ed530Ac6", //update when necessary
+    statement: "BigHurricane23", 
+    category: "234324", // group
+    premiums: "234234234", // number
+    location: [
+        {
+            whatThreeWords: ['pretty', 'needed', 'chill'], 
+            radius: "20", 
+        },
+    ],
+};
+
 
 
   const classes = useStyles();
@@ -141,7 +159,7 @@ let bond_id
   ];
   
   
-
+console.log([policy.location[0].whatThreewords])
   return (
     <>
       <Meta title="Dashboard" />
@@ -170,7 +188,7 @@ let bond_id
                       className={classes.gradientText}
                       align="left"
                     >
-                      {bondName}
+                      {policy.name}
                     </Typography>
 
                   
@@ -209,10 +227,10 @@ let bond_id
                       <TableRow>
                         <TableCell sx={{ fontWeight: 'bold' }}>Class A</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>   <Button variant="contained" color="secondary" sx={{ marginBottom: 1, width: '100%' }}>
-                        Buy @ $90
+                        Buy 
                       </Button></TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>   <Button variant="contained" color="secondary" sx={{ marginBottom: 1, width: '100%' }}>
-                        Sell @ $90
+                        Sell 
                       </Button></TableCell>
                      
                    
@@ -221,10 +239,10 @@ let bond_id
                       <TableRow>
                         <TableCell sx={{ fontWeight: 'bold' }}>Class B</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>   <Button variant="contained" color="secondary" sx={{ marginBottom: 1, width: '100%' }}>
-                        Buy @ $90
+                        Buy 
                       </Button></TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>   <Button variant="contained" color="secondary" sx={{ marginBottom: 1, width: '100%' }}>
-                        Sell @ $90
+                        Sell 
                       </Button></TableCell>
                      
                    
@@ -233,10 +251,10 @@ let bond_id
                       <TableRow>
                         <TableCell sx={{ fontWeight: 'bold' }}>Class C</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>   <Button variant="contained" color="secondary" sx={{ marginBottom: 1, width: '100%' }}>
-                        Buy @ $90
+                        Buy 
                       </Button></TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>   <Button variant="contained" color="secondary" sx={{ marginBottom: 1, width: '100%' }}>
-                        Sell @ $90
+                        Sell 
                       </Button></TableCell>
                      
                    
@@ -255,7 +273,7 @@ let bond_id
             <Grid item={true} xs={12} md={12}>
               <Card>
                 <CardContent sx={{ padding: 3 }}>
-                  {/* Table with verification method, peril covered, and a map */}
+                 
                   <Box>
                     <Typography
                       component={"span"}
@@ -263,23 +281,25 @@ let bond_id
                     >
                       Verification Method, Peril Covered and Location
                     </Typography>
-                    <Table>
+                    <Table   sx={{ fontWeight: "bold", mt: 4 }}>
                     <TableBody>
                       <TableRow>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Bond Name</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Bond Name</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Amount</TableCell>
+                        <TableCell >£200</TableCell>
 
                       </TableRow>
                       <TableRow>
                         <TableCell sx={{ fontWeight: 'bold' }}>Bond Name</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Bond Name</TableCell>
+                        <TableCell >Bond Name</TableCell>
 
                       </TableRow>
                       <TableRow>
                       <TableCell sx={{ fontWeight: 'bold' }}>Location</TableCell>
 
-                        <TableCell align="right" style={{ height: '300px' }}>
-                        <MapContainer className={classes.mapContainer} />
+                        <TableCell align="right" style={{ height: '200px' }}>
+                        <MapContainer what3words={policy.location[0].whatThreeWords} radius={policy.radius} className={classes.mapContainer} />
+
+ 
 
                     </TableCell>
                       </TableRow>

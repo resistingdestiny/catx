@@ -148,7 +148,7 @@ const [holder, setHolder] = useState("0x2D41164fDe069d7177105753CE333c73332c6456
     typeHash: ethers.utils.formatBytes32String("category"), 
     paymentFrequency: ethers.BigNumber.from(frequencyToSeconds(frequency).toString()), //complete
     size: ethers.BigNumber.from(stringAmount), //complete
-    underlying: "0x5B1F146caAAD62C4EE1fC9F29d9414B6Ed530Ac6", 
+    underlying: "0x5B1F146caAAD62C4EE1fC9F29d9414B6Ed530Ac6", //update when necessary
     statement: "BigHurricane23", 
     category: [ethers.BigNumber.from("1")], // group
     premiums: [ethers.BigNumber.from("300")], // number
