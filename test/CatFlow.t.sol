@@ -51,5 +51,5 @@ contract CatFlow is Test {
     // - policy holder credits reach zero
     // -> all investor funds (+premium payments) available to be redeemed by bond token holders
     // - successful claim is made ( need to look into)
-    // -> investor funds within affceted policies available for withdraw by policy holder
+    // -> investor funds within affected policies available for withdraw by policy holder
 }
