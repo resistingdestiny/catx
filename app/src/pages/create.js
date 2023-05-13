@@ -31,7 +31,9 @@ import { makeStyles } from '@mui/styles';
 import 'leaflet/dist/leaflet.css';
 import Confetti from 'react-dom-confetti';
 import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
-
+import { contract } from "../util/contract";
+import { useSigner } from "wagmi";
+import { ethers } from "ethers";
 const perils = [
     { id: 1, name: "Hurricane", icon: "images/hurricane.svg" },
     { id: 2, name: "Earthquake", icon: "images/earthquake.svg" },
@@ -40,7 +42,11 @@ const perils = [
    
   ];
 
+  import { Web3Storage } from 'web3.storage'
 
+  const getStorageClient = () => {
+    return new Web3Storage({ token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDU5ZkU4RjIyYmNiRGExRjQ1ZjZmNjM2MDdkZjE0MDg3RDYwQjM4MkMiLCJpc3MiOiJ3ZWIzLXN0b3JhZ2UiLCJpYXQiOjE2ODM5NzYyMTY3MTEsIm5hbWUiOiJDYXRFeGNoYW5nZSJ9.n_9Zpuca2CO_LBADxSIXkg6l4TcCUEEx3Dl2f-rRYAg' })
+  }
 function PerilSelection({ selectedPeril, onPerilSelect }) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
@@ -83,8 +89,11 @@ const MapContainer = dynamic(() => import('components/MapComponent'), {
     origin: { y: 0, x: 0.5 }, 
 
   };
-function DashboardPage(props) {
 
+ 
+function DashboardPage(props) {
+   
+    const { data: signer, isError, isLoading } = useSigner();
 
     const [isCelebrating, setIsCelebrating] = useState(false);
 
@@ -97,12 +106,69 @@ function DashboardPage(props) {
   const [premiumValue, setPremiumValue] = useState(3);
   const [estimatedYield, setEstimatedYield] = useState(0);
   const [graphData, setGraphData] = useState([]);
-  const { handleSubmit, register, errors, reset } = useForm();
+  const { register, errors, reset } = useForm();
   const [selectedPeril, setSelectedPeril] = useState(null);
   const handlePerilSelect = (perilId) => {
     setSelectedPeril(perilId);
   };
 
+
+const [holder, setHolder] = useState("0x2D41164fDe069d7177105753CE333c73332c6456")
+
+  
+  //////
+  let policy = {
+    holder: "0x2D41164fDe069d7177105753CE333c73332c6456", // replace with actual address
+    typeHash: ethers.utils.formatBytes32String("category"), // replace with actual string
+    paymentFrequency: ethers.BigNumber.from("5"), // replace with actual number
+    size: ethers.BigNumber.from("100"), // replace with actual number
+    underlying: "0x5B1F146caAAD62C4EE1fC9F29d9414B6Ed530Ac6", // replace with actual address
+    statement: "BigHurricane23", // replace with actual statement
+    category: [ethers.BigNumber.from("1")], // replace with actual array of numbers
+    premiums: [ethers.BigNumber.from("300")] // replace with actual array of numbers
+};
+
+function policyToHTML(policy) {
+    return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Policy Data</title>
+        </head>
+        <body>
+            <h1>Policy Data</h1>
+            <p>Holder: ${policy.holder}</p>
+            <p>TypeHash: ${policy.typeHash}</p>
+            <p>Payment Frequency: ${policy.paymentFrequency}</p>
+            <p>Size: ${policy.size}</p>
+            <p>Underlying: ${policy.underlying}</p>
+            <p>Statement: ${policy.statement}</p>
+            <p>Category: ${policy.category}</p>
+            <p>Premiums: ${policy.premiums}</p>
+        </body>
+        </html>
+    `;
+}
+
+const policyHTML = policyToHTML(policy);
+
+const storePolicy = async (policy) => {
+    const client = getStorageClient()
+    const policyHTML = policyToHTML(policy) 
+    const policyBlob = new Blob([policyHTML], { type: 'text/html' }) 
+
+    // Read Blob content
+    const reader = new FileReader();
+    reader.onloadend = function() {
+        console.log("Blob content:", reader.result);
+    }
+    reader.readAsText(policyBlob);
+
+    const cid = await client.put([policyBlob]) 
+    return cid
+}
+
+  const contractWithSigner = contract.connect(signer);
 
 
   const useStyles = makeStyles((theme) => ({
@@ -212,10 +278,12 @@ const calculateYield = () => {
   //////////////////////////////////////////////
 
 
-  const report = async () => {
+  const handleSubmit = async () => {
     try {
-
-     
+        const filecoinCID = await storePolicy(policy);
+        console.log('Filecoin CID:', filecoinCID);
+        const tx = await contractWithSigner.createPolicy(policy);
+        console.log(tx.hash);
         setSuccessMessage('Successfully created the bond'); // Update the success message
         setSuccessAlertOpen(true);
         setIsCelebrating(true);
@@ -372,7 +440,7 @@ const calculateYield = () => {
                   <Button
                     variant="contained"
                     size="large"
-                    onClick={report}
+                    onClick={handleSubmit}
                     sx={{
                       backgroundImage: "linear-gradient(85.9deg, #6F00FF -14.21%, #8A2BE2 18.25%, #A020F0 52.49%, #BA55D3 81.67%, #C71585 111.44%)",
                       color: "white",
@@ -418,6 +486,12 @@ const calculateYield = () => {
                     <TableCell>Total Cost</TableCell>
                     <TableCell align="right">
                         <span style={{ color: 'red', fontWeight: 'bold' }}>{totalReturn.toFixed(2)}%</span>
+                    </TableCell>
+                    </TableRow>
+                    <TableRow>
+                    <TableCell>Risk Free</TableCell>
+                    <TableCell align="right">
+                        <span style={{ color: 'red', fontWeight: 'bold' }}>TBC</span>
                     </TableCell>
                     </TableRow>
                     </TableBody>
