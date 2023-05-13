@@ -36,6 +36,8 @@ contract CatFactory {
         // Add policy to policies array and emit event
         policies.push(policy);
         emit NewPolicy(policies.length, policy, policyStruct);
+        // Initialize policy
+        require(ICat(policy).initializePolicy(), "Unable to deploy policy");
     }
 
     // ========== Private ==========
