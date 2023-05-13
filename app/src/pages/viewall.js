@@ -203,6 +203,31 @@ const [orderBy, setOrderBy] = useState('name');
 
         
         <Grid container={true} spacing={4}>
+        <Grid item={true} ml={0} mr={0}xs={12} md={4}>
+              <Card>
+                      <CardContent sx={{ padding: 3}}>
+                    
+                      <Typography>Insures transactions with Ultravity scores of less than 50</Typography>
+                      </CardContent>
+              </Card>
+            </Grid>
+            <Grid item={true} ml={0} xs={12} md={4}>
+              <Card>
+                      <CardContent sx={{ padding: 3}}>
+                      
+                      <Typography>Insures transactions with Ultravity scores of 50 to 70</Typography>
+                      </CardContent>
+              </Card>
+            </Grid>
+          <Grid item={true} ml={0} xs={12} md={4}>
+              <Card>
+                      <CardContent sx={{ padding: 3}}>
+                     
+                      <Typography>Insures transactions with Ultravity scores of more than 70</Typography>
+                      </CardContent>
+              </Card>
+            </Grid>
+            
         <Grid item={true} xs={12} md={12}>
             <Card>
               <CardContent sx={{ padding: 3 }}>

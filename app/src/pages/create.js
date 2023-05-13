@@ -13,6 +13,8 @@ import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 import Button from "@mui/material/Button";
 import { useNetwork } from "wagmi";
+import { useAccount } from "wagmi";
+
 import { Typography, Chip } from "@mui/material";
 import { DatePicker } from "@mui/lab";
 import TextField from '@mui/material/TextField';
@@ -35,6 +37,9 @@ import { ethers } from "ethers";
 import MenuItem from '@mui/material/MenuItem';
 import Tooltip from "@mui/material/Tooltip";
 import Web3 from "web3";
+
+
+
 const perils = [
     { id: 1, name: "Hurricane", icon: "images/hurricane.svg" },
     { id: 2, name: "Earthquake", icon: "images/earthquake.svg" },
@@ -111,7 +116,8 @@ const MapContainer = dynamic(() => import('components/MapComponent'), {
  
 
 function DashboardPage(props) {
-   
+    const { address, isConnecting, isDisconnected } = useAccount();
+
     const { data: signer, isError, isLoading } = useSigner();
 
     const [isCelebrating, setIsCelebrating] = useState(false);
@@ -131,12 +137,35 @@ function DashboardPage(props) {
   const [estimatedYield, setEstimatedYield] = useState(0);
   const [graphData, setGraphData] = useState([]);
   const { register, errors, reset } = useForm();
-  const [selectedPeril, setSelectedPeril] = useState(null);
+  const [selectedPeril, setSelectedPeril] = useState({id: 3, name: 'Wildfire', icon: 'images/fire.png'});
   const handlePerilSelect = (perilId) => {
     setSelectedPeril(perilId);
   };
 
+  let policyCategories = [];
+  let policyPremiums = [];
+  
+  if(premiums && premiums.length > 0){
+    policyCategories = premiums.map(premium => {
+        if (premium && premium.hasOwnProperty('severity')) {
+            return ethers.utils.formatBytes32String(premium.severity)
+        } else {
+            console.error('Premium object is undefined or does not have a category property', premium);
+            return null;
+        }
+    }).filter(Boolean); // Filter out null values
 
+    policyPremiums = premiums.map(premium => {
+        if (premium && premium.hasOwnProperty('value')) {
+            return ethers.BigNumber.from(premium.value.toString());
+        } else {
+            console.error('Premium object is undefined or does not have a value property', premium);
+            return null;
+        }
+    }).filter(Boolean); // Filter out null values
+}
+console.log(policyCategories)
+ console.log(policyPremiums)
 const [holder, setHolder] = useState("0x2D41164fDe069d7177105753CE333c73332c6456")
 
   const stringRadius = radiusInKm.toString()
@@ -144,16 +173,16 @@ const [holder, setHolder] = useState("0x2D41164fDe069d7177105753CE333c73332c6456
   const stringAmount = bondAmount.toString()
   //////
   let policy = {
-    name: {bondName}, //complete
+    name: bondName, //complete
     expiry: ethers.BigNumber.from(unixEndDate), //complete
-    holder: "0x2D41164fDe069d7177105753CE333c73332c6456", 
-    typeHash: ethers.utils.formatBytes32String("category"), 
+    holder: address, //complete
+    typeHash: ethers.utils.formatBytes32String(selectedPeril?.name), //complete
     paymentFrequency: ethers.BigNumber.from(frequencyToSeconds(frequency).toString()), //complete
     size: ethers.BigNumber.from(stringAmount), //complete
     underlying: "0x5B1F146caAAD62C4EE1fC9F29d9414B6Ed530Ac6", //update when necessary
-    statement: "BigHurricane23", 
-    category: [ethers.BigNumber.from("1")], // group
-    premiums: [ethers.BigNumber.from("300")], // number
+    statement: bondDescription, //complete
+    category: policyCategories, // group
+    premiums: policyPremiums, // number
     location: [
         {
             whatThreeWords: what3words.split("."), 
@@ -162,7 +191,7 @@ const [holder, setHolder] = useState("0x2D41164fDe069d7177105753CE333c73332c6456
     ],
 };
 console.log(policy)
-
+console.log(premiums)
 function policyToHTML(policy) {
     return `
         <!DOCTYPE html>
@@ -260,7 +289,7 @@ const storePolicy = async (policy) => {
     setFrequency(value);
 };
 const handleDescription= (event) => {
-    setBondDescription(event);
+    setBondDescription(event.target.value);
 };
 
 function frequencyToSeconds(frequency) {
@@ -459,6 +488,29 @@ console.log(endDate)
                         </TableCell>
                         </TableRow>
                         <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold' }} >Frequency</TableCell>
+                        <TableCell align="right">
+                        <Slider
+                                      value={frequency}
+                                      onChange={handleFrequency}
+                                      step={1}
+                                      marks={[
+                                        { value: '1', label: 'Hourly' },
+                                        { value: '2', label: 'Daily' },
+                                        { value: '3', label: 'Monthly' },
+                                        { value: '4', label: 'Quarterly' },
+                                        { value: '5', label: 'Yearly' }
+                                      ]}
+                                      min={1}
+                                      max={5}
+                                      valueLabelDisplay="off"
+
+                                    />
+                          
+
+                        </TableCell>
+                      </TableRow>
+                        <TableRow>
       <TableCell sx={{ fontWeight: 'bold' }}>Premiums</TableCell>
       <TableCell>
     <Table>
@@ -497,12 +549,8 @@ console.log(endDate)
                     </TableCell>
                     <TableCell>
                         <Button
-                        variant="contained"
-                        sx={{
-                            backgroundImage: "linear-gradient(85.9deg, #6F00FF -14.21%, #8A2BE2 18.25%, #A020F0 52.49%, #BA55D3 81.67%, #C71585 111.44%)",
-                            color: "white",
-                            ml: 0,
-                          }}
+                        variant="outline"
+                       
                             onClick={() => {
                                 const newPremiums = [...premiums];
                                 newPremiums.splice(index, 1);
@@ -517,11 +565,14 @@ console.log(endDate)
         </TableBody>
     </Table>
     <Button
-    variant="contained"
-    sx={{
-        backgroundImage: "linear-gradient(85.9deg, #6F00FF -14.21%, #8A2BE2 18.25%, #A020F0 52.49%, #BA55D3 81.67%, #C71585 111.44%)",
+  variant="outlined"
+  
+  sx={{
         color: "white",
-        ml: 0,
+        mt: 2,
+        ml: 20,
+        borderColor: "white",
+
       }}
       onClick={() => {
         if (premiums.length < 3) {
@@ -531,56 +582,12 @@ console.log(endDate)
         }
     }}
     >
-        Add Premium
+        Add 
     </Button>
 </TableCell>
     </TableRow>
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: 'bold' }} >Frequency</TableCell>
-                        <TableCell align="right">
-                        <Slider
-                                      value={frequency}
-                                      onChange={handleFrequency}
-                                      step={1}
-                                      marks={[
-                                        { value: '1', label: 'Hourly' },
-                                        { value: '2', label: 'Daily' },
-                                        { value: '3', label: 'Monthly' },
-                                        { value: '4', label: 'Quarterly' },
-                                        { value: '5', label: 'Yearly' }
-                                      ]}
-                                      min={1}
-                                      max={5}
-                                      valueLabelDisplay="off"
-
-                                    />
-                          
-
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: 'bold' }} >Expiry</TableCell>
-                        <TableCell align="right">
-
-                          <DatePicker
-                          className={classes.datePickerContainer}
-                          label="End Date"
-                          name="date"
-                          color="secondary"
-                          disableFuture={false}
-                          disablePast={true}
-                          value={endDate}
-                          onChange={handleEndDate}
-                          fullWidth={true}
-
-                          inputRef={register({
-                            required: "Please select a date",
-                          })}
-                          renderInput={(params) => <TextField {...params} />}
-                        />
-
-                        </TableCell>
-                      </TableRow>
+                     
+                  
                     </TableBody>
                   </Table>
 
@@ -606,9 +613,44 @@ console.log(endDate)
             <Confetti active={ isCelebrating } config={ confettiConfig } />
 
             <Grid item={true} xs={12} md={5}>
-             
-              <Card>
+            <Card >
                 <CardContent sx={{ padding: 3 }}>
+                <Typography sx={{ fontWeight: 'bold' }}>Expiry</Typography>
+
+                  <br></br>
+                  <Table>
+                    <TableBody>
+                    <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold' }} >Expiry</TableCell>
+                        <TableCell align="right">
+
+                          <DatePicker
+                          className={classes.datePickerContainer}
+                          label="End Date"
+                          name="date"
+                          color="secondary"
+                          disableFuture={false}
+                          disablePast={true}
+                          value={endDate}
+                          onChange={handleEndDate}
+                          fullWidth={true}
+
+                          inputRef={register({
+                            required: "Please select a date",
+                          })}
+                          renderInput={(params) => <TextField {...params} />}
+                        />
+
+                        </TableCell>
+                      </TableRow>
+                   
+                    </TableBody>
+                  </Table>
+                  
+                </CardContent>
+              </Card>
+              <Card sx={{ mt:2 }}>
+                <CardContent sx={{ padding: 3, }}>
                   <Typography sx={{ fontWeight: 'bold' }}>Coverage Area</Typography>
                   <br></br>
                   <Table>
@@ -627,7 +669,7 @@ console.log(endDate)
 
                 </CardContent>
               </Card>
-              <Card>
+              <Card sx={{ mt:2 }}>
                 <CardContent sx={{ padding: 3 }}>
                   <Typography sx={{ fontWeight: 'bold' }}>Returns</Typography>
                   <br></br>
@@ -639,12 +681,7 @@ console.log(endDate)
                         <span style={{ color: 'red', fontWeight: 'bold' }}>{totalReturn.toFixed(2)}%</span>
                     </TableCell>
                     </TableRow>
-                    <TableRow>
-                    <TableCell>Risk Free</TableCell>
-                    <TableCell align="right">
-                        <span style={{ color: 'red', fontWeight: 'bold' }}>TBC</span>
-                    </TableCell>
-                    </TableRow>
+                   
                     </TableBody>
                   </Table>
                   

@@ -355,7 +355,7 @@ console.log([policy.location[0].whatThreewords])
           >
          
               <>
-                <DialogTitle id="staking-dialog">Stake in</DialogTitle>
+                <DialogTitle id="staking-dialog">Invest</DialogTitle>
                 
                 <DialogContent
                 
@@ -372,7 +372,7 @@ console.log([policy.location[0].whatThreewords])
                   
                   <br></br>
                   <TextField
-                    label="WBIT to Stake"
+                    label="Investment Amount"
                     value={stakeAmount}
                     onChange={(e) => console.log('hello')}
                     type="number"
@@ -387,7 +387,7 @@ console.log([policy.location[0].whatThreewords])
                   />
                   <Typography>
                   <br></br>
-                  Base Insurance Rate: 
+                  Estimated Return:  
 </Typography>
               
                 </Box>
@@ -406,7 +406,7 @@ console.log([policy.location[0].whatThreewords])
                   
                   
                   >
-                    Stake
+                   Invest
                   </Button>
                 </DialogActions>
               </>
