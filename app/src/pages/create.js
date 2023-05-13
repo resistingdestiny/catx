@@ -34,6 +34,8 @@ import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 import { contract } from "../util/contract";
 import { useSigner } from "wagmi";
 import { ethers } from "ethers";
+import MenuItem from '@mui/material/MenuItem';
+
 const perils = [
     { id: 1, name: "Hurricane", icon: "images/hurricane.svg" },
     { id: 2, name: "Earthquake", icon: "images/earthquake.svg" },
@@ -96,6 +98,7 @@ function DashboardPage(props) {
     const { data: signer, isError, isLoading } = useSigner();
 
     const [isCelebrating, setIsCelebrating] = useState(false);
+    const [premiums, setPremiums] = useState([{severity: "small", value: 0}]);
 
   const [successAlertOpen, setSuccessAlertOpen] = useState(false);
   const [what3words, setWhat3Words] = useState("")
@@ -117,18 +120,29 @@ function DashboardPage(props) {
 
 const [holder, setHolder] = useState("0x2D41164fDe069d7177105753CE333c73332c6456")
 
-  
+  const stringRadius = radiusInKm.toString()
+  const unixEndDate = (Math.round(endDate/1000)).toString();
+  const stringAmount = bondAmount.toString()
   //////
   let policy = {
-    holder: "0x2D41164fDe069d7177105753CE333c73332c6456", // replace with actual address
-    typeHash: ethers.utils.formatBytes32String("category"), // replace with actual string
-    paymentFrequency: ethers.BigNumber.from("5"), // replace with actual number
-    size: ethers.BigNumber.from("100"), // replace with actual number
-    underlying: "0x5B1F146caAAD62C4EE1fC9F29d9414B6Ed530Ac6", // replace with actual address
-    statement: "BigHurricane23", // replace with actual statement
-    category: [ethers.BigNumber.from("1")], // replace with actual array of numbers
-    premiums: [ethers.BigNumber.from("300")] // replace with actual array of numbers
+    name: {bondName}, //complete
+    expiry: ethers.BigNumber.from(unixEndDate), //complete
+    holder: "0x2D41164fDe069d7177105753CE333c73332c6456", 
+    typeHash: ethers.utils.formatBytes32String("category"), 
+    paymentFrequency: ethers.BigNumber.from(frequencyToSeconds(frequency).toString()), //complete
+    size: ethers.BigNumber.from(stringAmount), //complete
+    underlying: "0x5B1F146caAAD62C4EE1fC9F29d9414B6Ed530Ac6", 
+    statement: "BigHurricane23", 
+    category: [ethers.BigNumber.from("1")], // group
+    premiums: [ethers.BigNumber.from("300")], // number
+    location: [
+        {
+            whatThreeWords: what3words.split("."), 
+            radius: stringRadius, 
+        },
+    ],
 };
+console.log(policy)
 
 function policyToHTML(policy) {
     return `
@@ -151,7 +165,10 @@ function policyToHTML(policy) {
         </html>
     `;
 }
-
+const removePremium = (index) => {
+    const newPremiums = premiums.filter((_, i) => i !== index);
+    setPremiums(newPremiums);
+  };
 const policyHTML = policyToHTML(policy);
 
 const storePolicy = async (policy) => {
@@ -182,6 +199,9 @@ const storePolicy = async (policy) => {
     },
     mapContainer: {
         height: '100%',
+        width: '100%',
+      },
+      datePickerContainer: {
         width: '100%',
       },
   }));
@@ -222,6 +242,31 @@ const storePolicy = async (policy) => {
 };
 
 
+function frequencyToSeconds(frequency) {
+    let frequencyInSeconds;
+    switch (frequency) {
+      case 1: // Hourly
+        frequencyInSeconds = 60 * 60;
+        break;
+      case 2: // Daily
+        frequencyInSeconds = 24 * 60 * 60;
+        break;
+      case 3: // Monthly
+        frequencyInSeconds = 30 * 24 * 60 * 60;
+        break;
+      case 4: // Quarterly
+        frequencyInSeconds = 3 * 30 * 24 * 60 * 60;
+        break;
+      case 5: // Yearly
+        frequencyInSeconds = 365 * 24 * 60 * 60;
+        break;
+      default:
+        frequencyInSeconds = 24 * 60 * 60; // Default to daily
+    }
+    return frequencyInSeconds;
+  }
+  
+
 const calculateYield = () => {
     const bondAmountValue = parseFloat(bondAmount);
     const premiumValueValue = parseFloat(premiumValue);
@@ -247,6 +292,8 @@ const calculateYield = () => {
       default:
         paymentFrequencyInDays = 1;
     }
+
+
   
     const totalPayments = Math.floor(duration / paymentFrequencyInDays);
     const totalReturn = totalPayments * premiumValueValue;
@@ -304,7 +351,7 @@ const calculateYield = () => {
 
   /////////////////////////////////////////////////////
 
-
+console.log(endDate)
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -361,11 +408,11 @@ const calculateYield = () => {
                       </TableRow>
                  
                       <TableRow>
-      <TableCell sx={{ fontWeight: 'bold' }}>Peril</TableCell>
-      <TableCell align="right">
-        <PerilSelection selectedPeril={selectedPeril} onPerilSelect={handlePerilSelect} />
-      </TableCell>
-    </TableRow>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Peril</TableCell>
+                            <TableCell align="right">
+                                <PerilSelection selectedPeril={selectedPeril} onPerilSelect={handlePerilSelect} />
+                            </TableCell>
+                            </TableRow>
                       <TableRow>
                         <TableCell sx={{ fontWeight: 'bold' }}>Bond Amount</TableCell>
                         <TableCell align="right">
@@ -379,17 +426,82 @@ const calculateYield = () => {
                         </TableCell>
                         </TableRow>
                         <TableRow>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Value of Premiums</TableCell>
-                        <TableCell align="right">
-                            <TextField
-                            fullWidth
+      <TableCell sx={{ fontWeight: 'bold' }}>Premiums</TableCell>
+      <TableCell>
+    <Table>
+        <TableBody>
+            {premiums.map((premium, index) => (
+                <TableRow key={index}>
+                    <TableCell>
+                        <TextField
+                            select
+                            label="Severity"
+                            value={premium.severity}
+                            onChange={(event) => {
+                                const newPremiums = [...premiums];
+                                newPremiums[index].severity = event.target.value;
+                                setPremiums(newPremiums);
+                            }}
+                        >
+                            {['small', 'medium', 'large'].map((option) => (
+                                <MenuItem key={option} value={option}>
+                                    {option}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                    </TableCell>
+                    <TableCell>
+                        <TextField
+                            label="Value"
                             type="number"
-                            value={premiumValue}
-                            onChange={handlePremiumValue}
-                            inputProps={{ min: 0 }}
-                            />
-                        </TableCell>
-                        </TableRow>
+                            value={premium.value}
+                            onChange={(event) => {
+                                const newPremiums = [...premiums];
+                                newPremiums[index].value = event.target.value;
+                                setPremiums(newPremiums);
+                            }}
+                        />
+                    </TableCell>
+                    <TableCell>
+                        <Button
+                        variant="contained"
+                        sx={{
+                            backgroundImage: "linear-gradient(85.9deg, #6F00FF -14.21%, #8A2BE2 18.25%, #A020F0 52.49%, #BA55D3 81.67%, #C71585 111.44%)",
+                            color: "white",
+                            ml: 0,
+                          }}
+                            onClick={() => {
+                                const newPremiums = [...premiums];
+                                newPremiums.splice(index, 1);
+                                setPremiums(newPremiums);
+                            }}
+                        >
+                            Remove 
+                        </Button>
+                    </TableCell>
+                </TableRow>
+            ))}
+        </TableBody>
+    </Table>
+    <Button
+    variant="contained"
+    sx={{
+        backgroundImage: "linear-gradient(85.9deg, #6F00FF -14.21%, #8A2BE2 18.25%, #A020F0 52.49%, #BA55D3 81.67%, #C71585 111.44%)",
+        color: "white",
+        ml: 0,
+      }}
+      onClick={() => {
+        if (premiums.length < 3) {
+            setPremiums([...premiums, {severity: "small", value: 0}])
+        } else {
+            alert("You can only add up to three premiums.")
+        }
+    }}
+    >
+        Add Premium
+    </Button>
+</TableCell>
+    </TableRow>
                       <TableRow>
                         <TableCell sx={{ fontWeight: 'bold' }} >Frequency</TableCell>
                         <TableCell align="right">
@@ -418,6 +530,7 @@ const calculateYield = () => {
                         <TableCell align="right">
 
                           <DatePicker
+                          className={classes.datePickerContainer}
                           label="End Date"
                           name="date"
                           color="secondary"
@@ -441,13 +554,14 @@ const calculateYield = () => {
                   <br></br>
                   <Button
                     variant="contained"
+                    sx={{
+                        backgroundImage: "linear-gradient(85.9deg, #6F00FF -14.21%, #8A2BE2 18.25%, #A020F0 52.49%, #BA55D3 81.67%, #C71585 111.44%)",
+                        color: "white",
+                        ml: 0,
+                      }}
                     size="large"
                     onClick={handleSubmit}
-                    sx={{
-                      backgroundImage: "linear-gradient(85.9deg, #6F00FF -14.21%, #8A2BE2 18.25%, #A020F0 52.49%, #BA55D3 81.67%, #C71585 111.44%)",
-                      color: "white",
-                      ml: 0,
-                    }}
+                    
                   >
                     Create Bond
                   </Button>
