@@ -73,9 +73,8 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
             classBuckets[i] = bucketPartition;
         }
         _mintBatch(address(this), classList, classBuckets, "");
-        // Initialize reserves, reservesPerShare, excess, and last rebalance time
+        // Calculate rateSum
         for (uint i = 0; i < policy.category.length; i++) {
-            reserves.push(0);
             rateSum += policy.premiums[i];
         }
         premiumDecay =
