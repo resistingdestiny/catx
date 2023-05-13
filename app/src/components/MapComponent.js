@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Circle, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet'; // you'll need to import Leaflet to create a new DivIcon
 import axios from 'axios';
@@ -35,9 +35,11 @@ export default function MapComponent(props) {
 
     return null;
   }
-
-  props.setRadiusInKm(radiusInKm);
-  props.setWhat3Words(what3words);
+  
+  useEffect(() => {
+    props.setRadiusInKm(radiusInKm);
+    props.setWhat3Words(what3words);
+}, [radiusInKm, what3words]);
 
   // create a new DivIcon instance with our custom HTML
   const catIcon = new L.DivIcon({

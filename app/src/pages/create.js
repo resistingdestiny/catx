@@ -14,11 +14,11 @@ import TableRow from "@mui/material/TableRow";
 import Button from "@mui/material/Button";
 import { useNetwork } from "wagmi";
 import { useAccount } from "wagmi";
+import { SHA256 } from 'crypto-js';
 
 import { Typography, Chip } from "@mui/material";
 import { DatePicker } from "@mui/lab";
 import TextField from '@mui/material/TextField';
-import { useForm } from "react-hook-form";
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import Slider from '@mui/material/Slider';
@@ -51,7 +51,7 @@ const perils = [
   import { Web3Storage } from 'web3.storage'
 
   const getStorageClient = () => {
-    return new Web3Storage({ token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDU5ZkU4RjIyYmNiRGExRjQ1ZjZmNjM2MDdkZjE0MDg3RDYwQjM4MkMiLCJpc3MiOiJ3ZWIzLXN0b3JhZ2UiLCJpYXQiOjE2ODM5NzYyMTY3MTEsIm5hbWUiOiJDYXRFeGNoYW5nZSJ9.n_9Zpuca2CO_LBADxSIXkg6l4TcCUEEx3Dl2f-rRYAg' })
+    return new Web3Storage({ token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDU5ZkU4RjIyYmNiRGExRjQ1ZjZmNjM2MDdkZjE0MDg3RDYwQjM4MkMiLCJpc3MiOiJ3ZWIzLXN0b3JhZ2UiLCJpYXQiOjE2ODQwMTExOTI4MzMsIm5hbWUiOiJCb2IifQ.xyeZM35fOAh6SeMCSyJ7hT5tn26qmbffyqmpZ4xQSqg' })
   }
 function PerilSelection({ selectedPeril, onPerilSelect }) {
   return (
@@ -131,12 +131,11 @@ function DashboardPage(props) {
   const [endDate, setEndDate] = useState(new Date().setFullYear(new Date().getFullYear() + 1));
   const [frequency, setFrequency] = useState(5);
   const [bondAmount, setBondAmount] = useState(100);
-  const [bondDescription, setBondDescription] = useState();
-
+  const [bondDescription, setBondDescription] = useState("verify");
+    const [CID, setCID] = useState();
   const [premiumValue, setPremiumValue] = useState(3);
   const [estimatedYield, setEstimatedYield] = useState(0);
   const [graphData, setGraphData] = useState([]);
-  const { register, errors, reset } = useForm();
   const [selectedPeril, setSelectedPeril] = useState({id: 3, name: 'Wildfire', icon: 'images/fire.png'});
   const handlePerilSelect = (perilId) => {
     setSelectedPeril(perilId);
@@ -164,8 +163,7 @@ function DashboardPage(props) {
         }
     }).filter(Boolean); // Filter out null values
 }
-console.log(policyCategories)
- console.log(policyPremiums)
+
 const [holder, setHolder] = useState("0x2D41164fDe069d7177105753CE333c73332c6456")
 
   const stringRadius = radiusInKm.toString()
@@ -190,51 +188,27 @@ const [holder, setHolder] = useState("0x2D41164fDe069d7177105753CE333c73332c6456
         },
     ],
 };
-console.log(policy)
-console.log(premiums)
-function policyToHTML(policy) {
-    return `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Policy Data</title>
-        </head>
-        <body>
-            <h1>Policy Data</h1>
-            <p>Holder: ${policy.holder}</p>
-            <p>TypeHash: ${policy.typeHash}</p>
-            <p>Payment Frequency: ${policy.paymentFrequency}</p>
-            <p>Size: ${policy.size}</p>
-            <p>Underlying: ${policy.underlying}</p>
-            <p>Statement: ${policy.statement}</p>
-            <p>Category: ${policy.category}</p>
-            <p>Premiums: ${policy.premiums}</p>
-        </body>
-        </html>
-    `;
-}
+
+
 const removePremium = (index) => {
     const newPremiums = premiums.filter((_, i) => i !== index);
     setPremiums(newPremiums);
   };
-const policyHTML = policyToHTML(policy);
+
+
+
 
 const storePolicy = async (policy) => {
-    const client = getStorageClient()
-    const policyHTML = policyToHTML(policy) 
-    const policyBlob = new Blob([policyHTML], { type: 'text/html' }) 
-
-    // Read Blob content
-    const reader = new FileReader();
-    reader.onloadend = function() {
-        console.log("Blob content:", reader.result);
-    }
-    reader.readAsText(policyBlob);
-
-    const cid = await client.put([policyBlob]) 
-    return cid
-}
-
+    const client = getStorageClient();
+    
+    const finalContent = JSON.stringify(policy);
+    const file = new File([finalContent], await SHA256(finalContent), {
+          type: 'text/plain',
+        });
+    const cid = await client.put([file]);
+    console.log(cid);
+    return cid;
+  }
   const contractWithSigner = contract.connect(signer);
 
 
@@ -267,6 +241,7 @@ const storePolicy = async (policy) => {
 
 
   useEffect(() => {
+  
     calculateYield();
     generateChartData();
   }, [bondAmount, premiumValue, frequency, endDate]);
@@ -379,8 +354,9 @@ const calculateYield = () => {
 
   const handleSubmit = async () => {
     try {
-        const filecoinCID = await storePolicy(policy);
-        console.log('Filecoin CID:', filecoinCID);
+        const policycid = await storePolicy(policy);
+        console.log('CID:', policycid);
+        setCID(policycid)
         const tx = await contractWithSigner.createPolicy(policy);
         console.log(tx.hash);
         setSuccessMessage('Successfully created the bond'); // Update the success message
@@ -401,7 +377,6 @@ const calculateYield = () => {
 
   /////////////////////////////////////////////////////
 
-console.log(endDate)
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -451,6 +426,8 @@ console.log(endDate)
                             fullWidth
                             type="text"
                             value={bondName}
+                            name="bondName"
+
                             onChange={handleName}
                             inputProps={{ min: 0 }}
                           />
@@ -470,6 +447,9 @@ console.log(endDate)
                             fullWidth
                             type="text"
                             value={bondDescription}
+                            name="bondDescription"
+                        
+
                             onChange={handleDescription}
                             inputProps={{ min: 0 }}
                           />
@@ -482,6 +462,8 @@ console.log(endDate)
                             fullWidth
                             type="number"
                             value={bondAmount}
+                            name="bondAmount"
+
                             onChange={handleBondAmount}
                             inputProps={{ min: 0 }}
                             />
@@ -492,14 +474,16 @@ console.log(endDate)
                         <TableCell align="right">
                         <Slider
                                       value={frequency}
+                                      name="frequency"
+
                                       onChange={handleFrequency}
                                       step={1}
                                       marks={[
-                                        { value: '1', label: 'Hourly' },
-                                        { value: '2', label: 'Daily' },
-                                        { value: '3', label: 'Monthly' },
-                                        { value: '4', label: 'Quarterly' },
-                                        { value: '5', label: 'Yearly' }
+                                        { value: 1, label: 'Hourly' },
+                                        { value: 2, label: 'Daily' },
+                                        { value: 3, label: 'Monthly' },
+                                        { value: 4, label: 'Quarterly' },
+                                        { value: 5, label: 'Yearly' }
                                       ]}
                                       min={1}
                                       max={5}
@@ -522,6 +506,7 @@ console.log(endDate)
                             select
                             label="Severity"
                             value={premium.severity}
+                            name="premium"
                             onChange={(event) => {
                                 const newPremiums = [...premiums];
                                 newPremiums[index].severity = event.target.value;
@@ -539,6 +524,7 @@ console.log(endDate)
                         <TextField
                             label="Value"
                             type="number"
+                            name="premium"
                             value={premium.value}
                             onChange={(event) => {
                                 const newPremiums = [...premiums];
@@ -627,7 +613,7 @@ console.log(endDate)
                           <DatePicker
                           className={classes.datePickerContainer}
                           label="End Date"
-                          name="date"
+                          name="endDate"
                           color="secondary"
                           disableFuture={false}
                           disablePast={true}
@@ -635,9 +621,7 @@ console.log(endDate)
                           onChange={handleEndDate}
                           fullWidth={true}
 
-                          inputRef={register({
-                            required: "Please select a date",
-                          })}
+                         
                           renderInput={(params) => <TextField {...params} />}
                         />
 
