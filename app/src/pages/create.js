@@ -33,11 +33,11 @@ import Confetti from 'react-dom-confetti';
 import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
 const perils = [
-    { id: 1, name: "Hurricane", icon: "path_to_hurricane_icon" },
-    { id: 2, name: "Earthquake", icon: "path_to_earthquake_icon" },
-    { id: 3, name: "Wildfire", icon: "path_to_wildfire_icon" },
-    { id: 4, name: "Flood", icon: "path_to_flood_icon" },
-    // Add other perils here
+    { id: 1, name: "Hurricane", icon: "images/hurricane.svg" },
+    { id: 2, name: "Earthquake", icon: "images/earthquake.svg" },
+    { id: 3, name: "Wildfire", icon: "images/fire.png" },
+    { id: 4, name: "Flood", icon: "images/flood.svg" },
+   
   ];
 
 
@@ -45,16 +45,20 @@ function PerilSelection({ selectedPeril, onPerilSelect }) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
         {perils.map((peril) => (
-          <Card key={peril.id} onClick={() => onPerilSelect(peril)} sx={{ width: '60px', height: '60px', borderRadius: '10px', borderColor: selectedPeril?.id === peril.id ? 'purple' : 'white', borderWidth: '2px', borderStyle: 'solid', marginRight: '8px', marginBottom: '8px' }}>
-            <CardMedia
-              component="img"
-              height="40"
-              image={peril.icon}
-              alt={peril.name}
-            />
-            <Typography variant="caption" display="block" textAlign="center">
-              {peril.name}
-            </Typography>
+          <Card key={peril.id} onClick={() => onPerilSelect(peril)} sx={{ width: '60px', height: '60px', borderRadius: '10px', borderColor: selectedPeril?.id === peril.id ? 'purple' : '#2F2F34', borderWidth: '2px', borderStyle: 'solid', marginRight: '8px', marginBottom: '8px' }}>
+           <CardMedia
+           sx={{
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            height: '100%', 
+            width: '100%',
+          }}
+  component="img"
+ 
+  image={peril.icon}
+  alt={peril.name}
+/>
+         
           </Card>
         ))}
       </Box>
