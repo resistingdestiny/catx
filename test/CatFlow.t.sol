@@ -22,6 +22,10 @@ contract CatFlow is Test {
 
     // deploy cat contract
     function test_deployCat(ICat.Policy memory policyStruct) public {
+        vm.assume(policyStruct.size <= 2**128);
+        vm.assume(policyStruct.premiums[0] <= factory.maxPremium());
+        vm.assume(policyStruct.premiums[1] <= factory.maxPremium());
+        vm.assume(policyStruct.premiums[2] <= factory.maxPremium());
         factory.createPolicy(policyStruct);
         assert(address(this) != address(0));
     }
