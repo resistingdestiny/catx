@@ -5,22 +5,25 @@ interface ICat {
     // Ideally should contain immutable data only (removed settled for this reason)
     struct Policy {
         string name;
+        string filecoinCID;
         uint expiry; // unix timestamp of bond expiry
         address holder; // address of policy holder (deployer)
         bytes32 typeHash; // hash of type of catastrophe e.g hurricane
         uint paymentFrequency; // payment frequency in seconds
-        uint size; //number of collateral tokens required in policy
+        uint size; //number of collateral tokens required in policy (to nearest integer, no decimals)
         address underlying; // address of collateral token
         string statement; // UMA text statement
-        uint[] category; // category of catastrophe e.g (hurricane) category 3
-        uint[] premiums; // set of three premiums (one for each tier)
-        Loc[] location;
+        Location location;
+        uint[3] category; // category of catastrophe e.g (hurricane) category 3
+        uint[3] premiums; // set of three premiums (one for each tier)
     }
 
-    struct Loc {
+    struct Location {
         string[] whatThreeWords;
         uint radius;
     }
+
+    function initializePolicy() external returns (bool);
 
     function settled() external view returns (bool);
 

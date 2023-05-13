@@ -10,13 +10,19 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {AncillaryData as ClaimData} from "./libraries/AncillaryData.sol";
 
 // ========== Contracts ==========
-import {ERC1155Supply, ERC1155} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+import {ERC1155Supply, ERC1155, IERC1155, IERC1155MetadataURI} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+import {ERC1155Holder, IERC1155Receiver, ERC1155Receiver} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract Cat is ICat, ERC1155Supply, ReentrancyGuard {
+contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
     // ========== Constants ==========
-    uint BPS = 10000;
-    uint secondsPerYear = 3.154*10**7;
+    uint constant BPS = 10000;
+    uint constant secondsPerYear = 3.154 * 10 ** 7;
+    uint constant CLASS_A = 0;
+    uint constant CLASS_B = 1;
+    uint constant CLASS_C = 2;
+
+    address immutable factory;
 
     // ========== State variables ==========
 
@@ -26,9 +32,13 @@ contract Cat is ICat, ERC1155Supply, ReentrancyGuard {
      */
     bool public settled;
 
+    bool public initialized;
+
     bool public catInitialized;
 
-    uint[] public reserves;
+    uint[3] public reserves;
+
+    bool[3] public filled;
 
     uint premiumDecay; // decay of premium account balance
 
@@ -36,31 +46,49 @@ contract Cat is ICat, ERC1155Supply, ReentrancyGuard {
 
     uint public lastPremiumPaymentTime;
 
-    uint rateSum;
+    uint rateSum; // Sum of the rates
 
     // ========== Functions ==========
 
     // ========== Constructor ==========
     constructor()
         ERC1155("") // Also set to nil, override with metadata
-    {}
+    {
+        factory = msg.sender;
+    }
 
     // ========== External ==========
 
-    function initializeCat() external nonReentrant {
+    function initializePolicy() external returns (bool) {
+        require(!initialized, "Policy already initialized"); // Ensures this function can only be called once
+        require(msg.sender == factory, "Policy must be initialized by factory");
+        Policy memory policy = POLICY(); // Loading policy to memory
+        // Mint bond tokens according to metadata
+        uint bucketPartition = (policy.size * 10 ** 18) /
+            policy.category.length;
+        uint[] memory classList = new uint[](3);
+        uint[] memory classBuckets = new uint[](3);
+        for (uint i = 0; i < 3; i++) {
+            classList[i] = i;
+            classBuckets[i] = bucketPartition;
+        }
+        _mintBatch(address(this), classList, classBuckets, "");
+        // Initialize reserves, reservesPerShare, excess, and last rebalance time
+        for (uint i = 0; i < policy.category.length; i++) {
+            reserves.push(0);
+            rateSum += policy.premiums[i];
+        }
+        premiumDecay =
+            ((rateSum / policy.category.length) * policy.size * 10**18) /
+            (BPS * secondsPerYear); //underlying tokens/second
+        return true;
+    }
+
+    function initializeCat() external {
         // Can only be called once
         require(!catInitialized, "Cat already initialized");
         // Set proxyInit true
         catInitialized = true;
-        Policy memory policy = POLICY();
-        // Initialize reserves, reservesPerShare, excess, and last rebalance time
-        for (uint i = 0; i < policy.category.length; i++) {
-            reserves.push(0);
-            rateSum = rateSum + policy.premiums[i];
-        }
-        premiumDecay =
-            ((rateSum / policy.category.length) * policy.size) /
-            BPS; //underlying tokens/year
         // Set lastRebalanceTime
         lastPremiumPaymentTime = block.timestamp;
     }
@@ -105,6 +133,16 @@ contract Cat is ICat, ERC1155Supply, ReentrancyGuard {
 
     // ========== Public ==========
 
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ERC1155, ERC1155Receiver) returns (bool) {
+        return
+            interfaceId == type(IERC1155).interfaceId ||
+            interfaceId == type(IERC1155MetadataURI).interfaceId ||
+            interfaceId == type(IERC1155Receiver).interfaceId ||
+            super.supportsInterface(interfaceId);
+    }
+
     /**
      * @dev can be called to access the policy struct
      * @dev assumed to be immutable
@@ -134,7 +172,6 @@ contract Cat is ICat, ERC1155Supply, ReentrancyGuard {
     function getPremiumAccountBalance() public view override returns (uint) {
         return
             premiumAccountBalance -
-            ((premiumDecay * (block.timestamp - lastPremiumPaymentTime)) /
-                secondsPerYear);
+            (premiumDecay * (block.timestamp - lastPremiumPaymentTime));
     }
 }
