@@ -2,10 +2,10 @@
 pragma solidity 0.8.16;
 
 interface ICat {
+    // Ideally should contain immutable data only (removed settled for this reason)
     struct Policy {
         // tried to pack a bit efficiently:
         address holder; // address of policy holder (deployer)
-        bool settled; // is the policy active?
         bytes32 typeHash; // hash of type of catastrophe e.g hurricane
         uint paymentFrequency; // payment frequency in seconds
         uint size; //number of collateral tokens required in policy
@@ -14,6 +14,8 @@ interface ICat {
         uint[] category; // category of catastrophe e.g (hurricane) category 3
         uint[] premiums; // set of three premiums (one for each tier)
     }
+
+    function settled() external view returns (bool);
 
     function reserves(uint) external view returns (uint);
 
