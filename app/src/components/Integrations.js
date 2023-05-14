@@ -8,11 +8,6 @@ import SectionHeader from "components/SectionHeader";
 function Integrations(props) {
   const items = [
     {
-      name: "1Inch",
-      image: "https://cryptologos.cc/logos/1inch-1inch-logo.png",
-      width: "100px",
-    },
-    {
         name: "UMA",
         image: "https://avatars.githubusercontent.com/u/40549210?s=280&v=4",
         width: "100px",
@@ -37,6 +32,36 @@ function Integrations(props) {
       {
         name: "Optimism",
         image: "https://cryptologos.cc/logos/optimism-ethereum-op-logo.png",
+        width: "100px",
+
+      },
+      {
+        name: "Metamask",
+        image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/MetaMask_Fox.svg/1200px-MetaMask_Fox.svg.png",
+        width: "100px",
+
+      },
+      {
+        name: "Scroll",
+        image: "https://scroll.io/logo.png",
+        width: "100px",
+
+      },
+      {
+        name: "Polygon",
+        image: "https://cryptologos.cc/logos/polygon-matic-logo.png",
+        width: "100px",
+
+      },
+      {
+        name: "Gnosis",
+        image: "https://cdn.sanity.io/images/r2mka0oi/production/bf37b9c7fb36c7d3c96d3d05b45c76d89072b777-1800x1800.png",
+        width: "100px",
+
+      },
+      {
+        name: "Neon",
+        image: "images/neon.png",
         width: "100px",
 
       },

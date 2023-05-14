@@ -52,12 +52,11 @@ const useStyles = makeStyles((theme) => ({
 
   function DashboardPage(props) {
     const contractAddress = '0x20C6E292F4127e0FAB75AB67C01eD2Cb72fD814D'
-
     const [frog, setFrog] = useState([])
     const getAllPolicies = async (rpc_url, contract_address, abi, abiContract) => {
       // Instantiate web3 with HttpProvider
       const web3 = new Web3(new Web3.providers.HttpProvider(rpc_url));
-  
+      
       // Instantiate contract
       const contract = new web3.eth.Contract(abi, '0x20C6E292F4127e0FAB75AB67C01eD2Cb72fD814D');
       console.log('frog2', contract )
@@ -70,7 +69,6 @@ const useStyles = makeStyles((theme) => ({
         toBlock
       });
       console.log('events', events)
-  
       const policies = [];
 
       for (const event of events) {
@@ -207,7 +205,7 @@ const [orderBy, setOrderBy] = useState('name');
             <Grid item={true} ml={0} xs={12} md={4}>
             <Grid item mb={2}>
                 <Card>
-                  <CardContent sx={{ padding: 3 }}>
+                  <CardContent sx={{ padding: 3, mt:1  }}>
                     <Box display="flex" alignItems="center">
                       <AccountBalanceWalletIcon />
 
@@ -218,7 +216,7 @@ const [orderBy, setOrderBy] = useState('name');
                         <strong
                           style={{ fontWeight: "bold", padding: 3, ML: 5 }}
                         >
-                          Committed Capital:
+                          Approved Bonds
                         </strong>
                       </Typography>
                       <Typography
@@ -226,7 +224,7 @@ const [orderBy, setOrderBy] = useState('name');
                         sx={{ fontWeight: "bold", marginLeft: 2 }}
                         className={classes.gradientText}
                       >
-                       22
+                       {frog?.length}
                       </Typography>
                     </Box>
                     <br></br>
@@ -234,13 +232,35 @@ const [orderBy, setOrderBy] = useState('name');
                 </Card>
               </Grid>
             </Grid>
-          <Grid item={true} ml={0} xs={12} md={4}>
-              <Card>
-                      <CardContent sx={{ padding: 3}}>
-                     
-                      <Typography>Insures transactions with Ultravity scores of more than 70</Typography>
-                      </CardContent>
-              </Card>
+            <Grid item={true} ml={0} xs={12} md={4}>
+            <Grid item mb={2}>
+                <Card>
+                  <CardContent sx={{ padding: 3, mt:1  }}>
+                    <Box display="flex" alignItems="center">
+                      <AccountBalanceWalletIcon />
+
+                      <Typography
+                        component={"span"}
+                        sx={{ fontWeight: "bold", marginLeft: 2}}
+                      >
+                        <strong
+                          style={{ fontWeight: "bold", padding: 3, ML: 5 }}
+                        >
+                         Total Value
+                        </strong>
+                      </Typography>
+                      <Typography
+                        component={"span"}
+                        sx={{ fontWeight: "bold", marginLeft: 2 }}
+                        className={classes.gradientText}
+                      >
+                       3,100
+                      </Typography>
+                    </Box>
+                    <br></br>
+                  </CardContent>
+                </Card>
+              </Grid>
             </Grid>
             
         <Grid item={true} xs={12} md={12}>
@@ -274,7 +294,7 @@ const [orderBy, setOrderBy] = useState('name');
                             direction={orderBy === 'number' ? order : 'asc'}
                             onClick={handleSort('number')}
                           >
-                            Number
+                            Size
                           </TableSortLabel>
                         </TableCell>
                         <TableCell align="right">
@@ -283,7 +303,7 @@ const [orderBy, setOrderBy] = useState('name');
                             direction={orderBy === 'issuePrice' ? order : 'asc'}
                             onClick={handleSort('issuePrice')}
                           >
-                            Issue Price
+                            Peril
                           </TableSortLabel>
                         </TableCell>
                         <TableCell align="right">
@@ -292,7 +312,7 @@ const [orderBy, setOrderBy] = useState('name');
                             direction={orderBy === 'currentPrice' ? order : 'asc'}
                             onClick={handleSort('currentPrice')}
                           >
-                            Current Price
+                            Underlying
                           </TableSortLabel>
                         </TableCell>
                       </TableRow>
@@ -319,8 +339,8 @@ const [orderBy, setOrderBy] = useState('name');
                       </Box>
                     </TableCell>
                     <TableCell align="right">{policy.size}</TableCell>
-                    <TableCell align="right">{policy.issuePrice}</TableCell>
-                    <TableCell align="right">{policy.currentPrice}</TableCell>
+                    <TableCell align="right">{policy.catType}</TableCell>
+                    <TableCell align="right">GHO</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

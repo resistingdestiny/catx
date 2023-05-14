@@ -133,7 +133,7 @@ function DashboardPage(props) {
   const [frequency, setFrequency] = useState(5);
   const [bondAmount, setBondAmount] = useState(100);
   const [bondDescription, setBondDescription] = useState("Describe the trigger");
-    const [CID, setCID] = useState();
+    const [CID, setCID] = useState('bafybeib3oy2dehclqkt5ttgios2vdkebccpmm7dhqmtauwpgdfoeiezf5y');
   const [premiumValue, setPremiumValue] = useState(3);
   const [estimatedYield, setEstimatedYield] = useState(0);
   const [graphData, setGraphData] = useState([]);
@@ -184,7 +184,7 @@ const [holder, setHolder] = useState("0x2D41164fDe069d7177105753CE333c73332c6456
     premiums: policyPremiums, // number
     whatThreeWords: what3words, 
     radius: stringRadius,
-    filecoinCID: "bob"
+    filecoinCID: CID
 };
 
 console.log(policy)
@@ -365,14 +365,15 @@ const calculateYield = () => {
         setIsCelebrating(true);
         setTimeout(() => {
             setIsCelebrating(false);
-            router.push('/bond');
-          }, 3000); // Stop confetti after 3 seconds
+            router.push('/viewall');
+          }, 4000); // Stop confetti after 3 seconds
   
        
     
 
     } catch (error) {
       console.error("Error signing the typed data:", error);
+      alert('Error submitting. Please ensure you have selected three risk traunches and completed all form elements. Our public front-end creation demo currently supports Goerli with GHO underlying, with additional networks available soon.')
     }
   };
 
@@ -669,7 +670,7 @@ const calculateYield = () => {
 
                 </CardContent>
               </Card>
-              <Card sx={{ mt:2 }}>
+            {/*   <Card sx={{ mt:2 }}>
                 <CardContent sx={{ padding: 3 }}>
                   <Typography sx={{ fontWeight: 'bold' }}>Returns</Typography>
                   <br></br>
@@ -686,7 +687,7 @@ const calculateYield = () => {
                   </Table>
                   
                 </CardContent>
-              </Card>
+              </Card> */}
 
             </Grid>
          

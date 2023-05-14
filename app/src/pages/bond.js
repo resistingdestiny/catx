@@ -139,7 +139,12 @@ let policyRow
   }
 
 
-
+  const handleCloseSuccessAlert = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSuccessAlertOpen(false);
+  };
   const getPolicy = async (rpc_url, contract_address, abiContract) => {
     // Instantiate web3 with HttpProvider
 
@@ -271,6 +276,16 @@ let policyRow
   return (
     <>
       <Meta title="Dashboard" />
+      <Snackbar
+        open={successAlertOpen}
+        autoHideDuration={6000}
+        onClose={handleCloseSuccessAlert}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert onClose={handleCloseSuccessAlert} severity="success">
+          {successMessage}
+        </Alert>
+      </Snackbar>
       <Section
         bgColor={props.bgColor}
         size={props.size}
@@ -324,6 +339,7 @@ let policyRow
                 </CardContent>
               </Card>
             </Grid>
+            <Confetti active={ isCelebrating } config={ confettiConfig } />
             <Grid item={true} xs={12} md={5}>
               <Grid item mb={2}>
                 <Card>

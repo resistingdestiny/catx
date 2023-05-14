@@ -17,11 +17,10 @@ export default function MapComponent(props) {
   }
   
 
-  // create a new DivIcon instance with our custom HTML
   const catIcon = new L.DivIcon({
-    className: "custom-icon", // optional, can be used for styling
-    html: "😺", // this will be the marker icon
-    iconSize: [30, 30], // size of the icon in pixels
+    className: "custom-icon",
+    html: "😺", 
+    iconSize: [30, 30], 
   });
   
   useEffect(() => {
