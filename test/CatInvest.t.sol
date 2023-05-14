@@ -19,7 +19,7 @@ contract CatInvest is Test, ERC1155Holder {
     Mock mockErc20;
 
     function setUp() public {
-        factory = new CatFactory();
+        factory = new CatFactory(address(0));
         mockErc20 = new Mock();
     }
 

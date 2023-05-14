@@ -14,16 +14,16 @@ contract CatFactory {
 
     // ========== State variables ==========
 
-    address[] policies;
+    address[] public policies;
 
     // ========== Events ==========
 
     event NewPolicy (uint indexed nonce, address indexed policy, ICat.Policy indexed policyStruct );
 
     // ========== Constructor ==========
-    constructor() {
+    constructor(address oo_) {
         // Deploy cat singleton
-        CAT_SINGLETON = address(new Cat());
+        CAT_SINGLETON = address(new Cat(oo_));
         require(CAT_SINGLETON != address(0), "Unable to deploy CAT_SINGLETON");
     }
 

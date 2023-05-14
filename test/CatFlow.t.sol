@@ -16,7 +16,7 @@ contract CatFlow is Test {
 
     // deploy factory
     function setUp() public {
-        factory = new CatFactory();
+        factory = new CatFactory(address(0));
         singleton = Cat(factory.CAT_SINGLETON());
     }
 

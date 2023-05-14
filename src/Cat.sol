@@ -3,10 +3,9 @@ pragma solidity 0.8.16;
 
 // ========== Interfaces ==========
 import {ICat} from "./interfaces/ICat.sol";
-import {OptimisticOracleV3Interface} from "./interfaces/OptimisticOracleV3Interface.sol";
+import {OptimisticOracleV3Interface as ooInterface} from "./interfaces/OptimisticOracleV3Interface.sol";
 
 // ========== Libraries ==========
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {AncillaryData as ClaimData} from "./libraries/AncillaryData.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -15,7 +14,7 @@ import {ERC1155Supply, ERC1155, IERC1155, IERC1155MetadataURI} from "@openzeppel
 import {ERC1155Holder, IERC1155Receiver, ERC1155Receiver} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
+contract Cat is ICat, ERC1155Supply, ERC1155Holder {
     // ========== Constants ==========
     uint public constant BPS = 10000;
     uint public constant year = 365 days;
@@ -24,6 +23,7 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
     uint public constant CLASS_C = 2;
 
     address public immutable factory;
+    address public immutable oo;
 
     // ========== State variables ==========
 
@@ -47,13 +47,16 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
 
     uint public rateSum; // Sum of the rates
 
+    mapping(bytes32 => string) public assertions;
+
     // ========== Functions ==========
 
     // ========== Constructor ==========
-    constructor()
+    constructor(address oo_)
         ERC1155("") // Also set to nil, override with metadata
     {
         factory = msg.sender;
+        oo = oo_;
     }
 
     // ========== External ==========
@@ -173,9 +176,49 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
 
     // create view function which gives current amount of collateral in pool.
 
-    function requestPayout() external override returns (bytes32) {}
+    function requestPayout(uint) external returns (bytes32 assertionId) {
+        // Load policy
+        Policy memory policy = POLICY();
+        uint256 bond = ooInterface(oo).getMinimumBond(address(IERC20(policy.underlying)));
+        SafeERC20.safeTransferFrom(IERC20(policy.underlying), msg.sender, address(this), bond);
+        SafeERC20.safeApprove(IERC20(policy.underlying), address(oo), bond);
+        assertionId = ooInterface(oo).assertTruth(
+            abi.encodePacked(
+                
+            ),
+            msg.sender,
+            address(this),
+            address(0), // No sovereign security.
+            7200,
+            IERC20(policy.underlying),
+            bond,
+            ooInterface(oo).defaultIdentifier(),
+            bytes32(0) // No domain.
+        );
+    }
 
-    function assertionResolvedCallback(bytes32, bool) external override {}
+    function assertionResolvedCallback(bytes32 assertionId, bool assertedTruthfully) public {
+        require(msg.sender == address(oo));
+        // If the assertion was true, then the policy is settled.
+        if (assertedTruthfully) {
+            _settlement(assertions[assertionId]);
+        }
+    }
+
+    function assertionDisputedCallback(bytes32 assertionId) public {}
+
+    function withdraw(address receiver) external {
+        // Load policy
+        Policy memory policy = POLICY();
+        bool expired = block.timestamp >= policy.expiry;
+        require(getPremiumAccountBalance() == 0 || settled || expired, "Bond still active");
+        if (!settled) {
+            settled = true; // blocks any further premium payments
+        }
+        // batch burn bond tokens of msg.sender
+        // send corresponding underlying
+        // this is a ratio of reserves and their bond holdings (update reserves after a withdraw)
+    }
 
     // ========== Public ==========
 
@@ -231,9 +274,51 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
         policy = abi.decode(data, (Policy));
     }
 
+    // Modify to not underflow with inequalities (returning 0 and otherwise)
     function getPremiumAccountBalance() public view override returns (uint) {
-        return
-            premiumAccountBalance -
-            (premiumDecay * (block.timestamp - lastPremiumPaymentTime));
+        uint decayedBalance = (premiumDecay * (block.timestamp - lastPremiumPaymentTime));
+        if (decayedBalance > premiumAccountBalance) {
+            return 0;
+        }
+        else {
+            return premiumAccountBalance - decayedBalance;
+        }
+    }
+
+    // ========== Private ==========
+
+    function _settlement(string memory catType) private {
+        // Load policy
+        Policy memory policy = POLICY();
+        // Running total payout
+        uint totalPayout;
+        // if then logic for the three different cases
+        if (keccak256(abi.encode(catType)) == keccak256(abi.encode(policy.category[CLASS_A]))) {
+            totalPayout = totalSupply(CLASS_A);
+            reserves[CLASS_A] -= totalPayout;
+            SafeERC20.safeTransferFrom(IERC20(policy.underlying), address(this), policy.holder, totalPayout);
+            emit Claim(policy.category[CLASS_A], totalPayout);
+            settled = true;
+            return;
+        }
+        else if (keccak256(abi.encode(catType)) == keccak256(abi.encode(policy.category[CLASS_B]))) {
+            totalPayout = totalSupply(CLASS_A) + totalSupply(CLASS_B);
+            reserves[CLASS_A] -= totalSupply(CLASS_A);
+            reserves[CLASS_B] -= totalSupply(CLASS_B);
+            SafeERC20.safeTransferFrom(IERC20(policy.underlying), address(this), policy.holder, totalPayout);
+            emit Claim(policy.category[CLASS_B], totalPayout);
+            settled = true;
+            return;
+        }
+        else if (keccak256(abi.encode(catType)) == keccak256(abi.encode(policy.category[CLASS_C]))) {
+            totalPayout = totalSupply(CLASS_A) + totalSupply(CLASS_B) + totalSupply(CLASS_C);
+            reserves[CLASS_A] -= totalSupply(CLASS_A);
+            reserves[CLASS_B] -= totalSupply(CLASS_B);
+            reserves[CLASS_C] -= totalSupply(CLASS_C);
+            SafeERC20.safeTransferFrom(IERC20(policy.underlying), address(this), policy.holder, totalPayout);
+            emit Claim(policy.category[CLASS_C], totalPayout);
+            settled = true;
+            return;
+        }
     }
 }
