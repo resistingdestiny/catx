@@ -80,7 +80,7 @@ interface ICat is ooRecipient {
 
     // issue insurance will be ERC4626 'deposit' (or similar)
 
-    function requestPayout() external returns (bytes32); // XREF UMA
+    function requestPayout(uint) external returns (bytes32); // XREF UMA
 
     function withdraw(address) external;
 }

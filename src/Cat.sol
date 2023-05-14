@@ -176,7 +176,7 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder {
 
     // create view function which gives current amount of collateral in pool.
 
-    function requestPayout(uint) external returns (bytes32 assertionId) {
+    function requestPayout(uint cat) external returns (bytes32 assertionId) {
         // Load policy
         Policy memory policy = POLICY();
         uint256 bond = ooInterface(oo).getMinimumBond(address(IERC20(policy.underlying)));
@@ -184,7 +184,11 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder {
         SafeERC20.safeApprove(IERC20(policy.underlying), address(oo), bond);
         assertionId = ooInterface(oo).assertTruth(
             abi.encodePacked(
-                
+                policy.statement,
+                policy.catType,
+                policy.category[cat],
+                policy.whatThreeWords,
+                policy.radius
             ),
             msg.sender,
             address(this),
@@ -195,6 +199,8 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder {
             ooInterface(oo).defaultIdentifier(),
             bytes32(0) // No domain.
         );
+        // Store assetion and type of of cat
+        assertions[assertionId] = policy.category[cat];
     }
 
     function assertionResolvedCallback(bytes32 assertionId, bool assertedTruthfully) public {

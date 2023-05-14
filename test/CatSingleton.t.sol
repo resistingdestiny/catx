@@ -11,7 +11,7 @@ contract FundDeployment is Test {
     Cat singleton;
 
     function setUp() public {
-        factory = new CatFactory();
+        factory = new CatFactory(address(0));
         singleton = Cat(factory.CAT_SINGLETON());
     }
 

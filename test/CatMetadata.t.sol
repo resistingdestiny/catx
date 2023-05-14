@@ -12,7 +12,7 @@ contract FundMetadata is Test {
     ICat policy;
 
     function setUp() public {
-        factory = new CatFactory();
+        factory = new CatFactory(address(0));
     }
 
     function testMetadata(ICat.Policy memory policyStruct) public { 
