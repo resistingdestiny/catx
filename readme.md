@@ -24,8 +24,7 @@ All core contracts deployed on Scroll (CatFactory - 0xA109E6aea9515f609d1Eb366ED
 ### Mantle
 Deployed Uma oracle contract in addition to our two core smart contracts (cat factory and cat) to benefit from speed and performance of Mantle network.
 Cat Factory: 0xA109E6aea9515f609d1Eb366ED97BD3239aE3723 and Cat: 0xaE3f54371E58768305f1145B4231B519C02603A1
-https://explorer.testnet.mantle.xyz/address/0xA109E6aea9515f609d1Eb366ED97BD3239aE3723![image](https://github.com/resistingdestiny/catx/assets/2283872/cc089302-1d8c-43bd-85ef-e2cc92cf5760)
-https://explorer.testnet.mantle.xyz/address/0xaE3f54371E58768305f1145B4231B519C02603A1![image](https://github.com/resistingdestiny/catx/assets/2283872/4dd95110-b282-4b47-bfff-44dcf5de542e)
+
 
 
 ### Gnosis
