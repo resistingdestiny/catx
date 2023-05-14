@@ -17,13 +17,13 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
     // ========== Constants ==========
-    uint constant BPS = 10000;
-    uint constant year = 365 days;
-    uint constant CLASS_A = 0;
-    uint constant CLASS_B = 1;
-    uint constant CLASS_C = 2;
+    uint public constant BPS = 10000;
+    uint public constant year = 365 days;
+    uint public constant CLASS_A = 0;
+    uint public constant CLASS_B = 1;
+    uint public constant CLASS_C = 2;
 
-    address immutable factory;
+    address public immutable factory;
 
     // ========== State variables ==========
 
@@ -39,19 +39,13 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
 
     uint[3] public reserves;
 
-    uint premiumDecay; // decay of premium account balance
+    uint public premiumDecay; // decay of premium account balance
 
     uint public premiumAccountBalance;
 
     uint public lastPremiumPaymentTime;
 
-    uint rateSum; // Sum of the rates
-
-    // ========== Events ==========
-
-    event Invest(address indexed owner, address indexed receiver, uint[3] indexed amounts);
-
-    event Refund(address indexed owner, address indexed receiver, uint[3] indexed amounts);
+    uint public rateSum; // Sum of the rates
 
     // ========== Functions ==========
 
@@ -89,7 +83,9 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
         return true;
     }
 
-    function invest(address owner, address receiver, uint[3] calldata amounts) external {
+    function invest(address receiver, uint[3] calldata amounts) external {
+        // Require that Cat has not be initialized
+        require(!catInitialized, "Cat already initialized");
         // Load balances of bonds on contract
         uint[] memory classList = new uint[](3);
         uint[] memory amountsList = new uint[](3);
@@ -110,14 +106,14 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
         // Load policy to memory
         Policy memory policy = POLICY();
         // Transfer amounts to contract
-        SafeERC20.safeTransferFrom(IERC20(policy.underlying), owner, address(this), totalAmount);
+        SafeERC20.safeTransferFrom(IERC20(policy.underlying), msg.sender, address(this), totalAmount);
         // Transfer bond tokens to receiver
-        safeBatchTransferFrom(address(this), receiver, classList, amountsList, "");
+        _safeBatchTransferFrom(address(this), receiver, classList, amountsList, "");
         // I think we populate reserves later since we are essentially issuing bonds 1 to 1 with collateral until then
-        emit Invest(owner, receiver, amounts);
+        emit Invest(msg.sender, receiver, amounts);
     }
 
-    function refund(address owner, address receiver, uint[3] calldata amounts) external {
+    function refund(address receiver, uint[3] calldata amounts) external {
         require(!catInitialized, "Cannot obtain a refund if policy has started");
         // Load class and amounts list to memory, also populating totalAmount as we go
         uint[] memory classList = new uint[](3);
@@ -129,12 +125,12 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
             totalAmount += amounts[i];
         }
         // Transfer bond tokens back to contract
-        safeBatchTransferFrom(owner, address(this), classList, amountsList, "");
+        safeBatchTransferFrom(msg.sender, address(this), classList, amountsList, "");
         // Load policy to memory
         Policy memory policy = POLICY();
         // Transfer amounts back to receiver
         SafeERC20.safeTransferFrom(IERC20(policy.underlying), address(this), receiver, totalAmount);
-        emit Refund(owner, receiver, amounts);
+        emit Refund(msg.sender, receiver, amounts);
     }
 
     function initializeCat(uint amount) external {
@@ -157,8 +153,9 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
         }
         // Load policy into memory
         Policy memory policy = POLICY();
-        // Load underying and require that underlying >= bonds 
+        // Load underlying and require that underlying >= bonds 
         require(IERC20(policy.underlying).balanceOf(address(this)) >= totalBonds, "Insufficient collateral");
+        // Emit cat initialized event
         // Make premium payment
         payPremium(amount);
     }
@@ -171,7 +168,7 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
     function reservesPerShare(
         uint category
     ) external view override returns (uint rps) {
-        rps = categoryReserves(category) / totalSupply(category); // beware rounding to zero
+        rps = reserves[category] / totalSupply(category); // beware rounding to zero
     }
 
     // create view function which gives current amount of collateral in pool.
@@ -232,12 +229,6 @@ contract Cat is ICat, ERC1155Supply, ERC1155Holder, ReentrancyGuard {
             calldatacopy(memPtr, location, size)
         }
         policy = abi.decode(data, (Policy));
-    }
-
-    function categoryReserves(
-        uint _category
-    ) public view override returns (uint _categoryReserves) {
-        _categoryReserves = reserves[_category];
     }
 
     function getPremiumAccountBalance() public view override returns (uint) {
