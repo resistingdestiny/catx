@@ -17,6 +17,8 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
+import { format } from 'date-fns';
+
 import {
   LineChart,
   Line,
@@ -63,7 +65,7 @@ const MapContainer = dynamic(() => import('components/viewMap'), {
 import PeopleIcon from "@mui/icons-material/People";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 
-import { abi, contractAddresses, rpc_url, polygon_rpc_url, abiContract} from "util/contract.js";
+import { contractAddresses, rpc_url, polygon_rpc_url, abiContract} from "util/contract.js";
 
 
 const tableRow = [
@@ -93,24 +95,7 @@ function DashboardPage(props) {
   const [successAlertOpen, setSuccessAlertOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState(false);
   const { chain, chains } = useNetwork();
-  let policy = {
-    name: "Bond 12", //complete
-    expiry: "112121", //complete
-    holder: "0x2D41164fDe069d7177105753CE333c73332c6456", 
-    typeHash: "123123", 
-    paymentFrequency: "21313", //complete
-    size: "12223", //complete
-    underlying: "0x5B1F146caAAD62C4EE1fC9F29d9414B6Ed530Ac6", //update when necessary
-    statement: "BigHurricane23", 
-    category: "234324", // group
-    premiums: "234234234", // number
-    location: [
-        {
-            whatThreeWords: ['pretty', 'needed', 'chill'], 
-            radius: "20", 
-        },
-    ],
-};
+  const [policy, setPolicy] = useState("")
 
 
 
@@ -127,7 +112,8 @@ function DashboardPage(props) {
     }
   },[chain?.name])
   // url parsing
-  const web3 = new Web3();
+  const web3 = new Web3(new Web3.providers.HttpProvider(rpc_address));
+
 
   const { address, isConnecting, isDisconnected } = useAccount();
 let bond_id
@@ -144,15 +130,16 @@ let bond_id
   const getPolicy = async (rpc_url, contract_address, abiContract) => {
     // Instantiate web3 with HttpProvider
 
-       const policyContractAddress = "0x2AB335fF597BC477D94E55727EF39aB2bEf8a2D3"
+       const policyContractAddress = "0xFDFEf7BF28a9EB2bcCA75185BA4768DcBb2d99e7"
         // Instantiate the policy contract
         const policyContract = new web3.eth.Contract(abiContract, policyContractAddress);
-        console.log('contrat', policyContract)
+        console.log('contrac', policyContract)
         // Call a method on the policy contract to fetch data
         // The exact method call depends on your contract's ABI
         const policyData = await policyContract.methods.POLICY().call();
-
+        return policyData
        console.log('data', policyData)
+       console.log('brexit means brexit')
       }
 
     
@@ -162,16 +149,34 @@ let bond_id
 
 
   useEffect(() => {
-    getPolicy(rpc_url, contractAddress, abi, abiContract)
-        .then(policies => {
-            // Do something with the policies
-            console.log('fish', policies.events);
+    getPolicy(rpc_url, contractAddress, abiContract)
+        .then(policyData => {
+            policy = {
+              name: policyData.name, 
+              filecoinCID: policyData.filecoinCID,
+              expiry: policyData.expiry,
+              holder: policyData.holder,
+              catType: policyData.catType,
+              paymentFrequency: policyData[5],
+              size: policyData.size,
+              underlying: policyData.underlying,
+              statement: policyData.statement,
+              whatThreeWords: policyData,
+              radius: policyData.radius,
+              category: policyData.category,
+              premiums: policyData.premium,
+            };
+            console.log('policy data', policy);
+            setPolicy(policy)
         })
         .catch(error => {
             // Handle or log any errors
             console.error(error);
         });
   }, []);
+
+  
+  
   
 
   
@@ -193,7 +198,6 @@ let bond_id
     setModalOpen(false);
   
   }
-console.log([policy.location[0].whatThreewords])
   return (
     <>
       <Meta title="Dashboard" />
@@ -312,30 +316,42 @@ console.log([policy.location[0].whatThreewords])
                       component={"span"}
                       sx={{ fontWeight: "bold", mb: 2 }}
                     >
-                      Verification Method, Peril Covered and Location
+                      About the Bond
                     </Typography>
                     <Table   sx={{ fontWeight: "bold", mt: 4 }}>
                     <TableBody>
                       <TableRow>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Amount</TableCell>
-                        <TableCell >£200</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Size of Bond</TableCell>
+                        <TableCell >{policy.size}</TableCell>
 
                       </TableRow>
                       <TableRow>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Bond Name</TableCell>
-                        <TableCell >Bond Name</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Peril</TableCell>
+                        <TableCell >{policy.catType}</TableCell>
 
                       </TableRow>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Verification Statement</TableCell>
+                        <TableCell >{policy.statement}</TableCell>
+
+                      </TableRow>
+                      <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Expiry</TableCell>
+                    <TableCell>
+                      {format(new Date(policy.expiry * 1000), 'yyyy-MM-dd HH:mm:ss')}
+                    </TableCell>
+                  </TableRow>
                       <TableRow>
                       <TableCell sx={{ fontWeight: 'bold' }}>Location</TableCell>
 
                         <TableCell align="right" style={{ height: '200px' }}>
-                        <MapContainer what3words={policy.location[0].whatThreeWords} radius={policy.radius} className={classes.mapContainer} />
+                        <MapContainer what3words={policy.whatThreeWords} radius={policy.radius} className={classes.mapContainer} />
 
  
 
                     </TableCell>
                       </TableRow>
+                      
                       
                     </TableBody>
                   </Table>

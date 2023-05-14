@@ -25,6 +25,7 @@ import Web3 from 'web3';
 import { useNetwork } from 'wagmi'
 import {  Multicall} from 'ethereum-multicall';
 import { contract, rpc_url, abi, abiContract } from "../util/contract";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 
 
 
@@ -206,18 +207,41 @@ const [orderBy, setOrderBy] = useState('name');
         <Grid item={true} ml={0} mr={0}xs={12} md={4}>
               <Card>
                       <CardContent sx={{ padding: 3}}>
-                    
-                      <Typography>Insures transactions with Ultravity scores of less than 50</Typography>
+                      <Typography variant="h6"  sx={{ fontWeight: "bold"}} className={classes.gradientText} align="left">Welcome
+</Typography>
+                      <Typography>Find and trade catastrophe bonds. </Typography>
                       </CardContent>
               </Card>
             </Grid>
             <Grid item={true} ml={0} xs={12} md={4}>
-              <Card>
-                      <CardContent sx={{ padding: 3}}>
-                      
-                      <Typography>Insures transactions with Ultravity scores of 50 to 70</Typography>
-                      </CardContent>
-              </Card>
+            <Grid item mb={2}>
+                <Card>
+                  <CardContent sx={{ padding: 3 }}>
+                    <Box display="flex" alignItems="center">
+                      <AccountBalanceWalletIcon />
+
+                      <Typography
+                        component={"span"}
+                        sx={{ fontWeight: "bold", marginLeft: 2 }}
+                      >
+                        <strong
+                          style={{ fontWeight: "bold", padding: 3, ML: 5 }}
+                        >
+                          Committed Capital:
+                        </strong>
+                      </Typography>
+                      <Typography
+                        component={"span"}
+                        sx={{ fontWeight: "bold", marginLeft: 2 }}
+                        className={classes.gradientText}
+                      >
+                       22
+                      </Typography>
+                    </Box>
+                    <br></br>
+                  </CardContent>
+                </Card>
+              </Grid>
             </Grid>
           <Grid item={true} ml={0} xs={12} md={4}>
               <Card>
@@ -231,7 +255,7 @@ const [orderBy, setOrderBy] = useState('name');
         <Grid item={true} xs={12} md={12}>
             <Card>
               <CardContent sx={{ padding: 3 }}>
-                <Typography sx={{ fontWeight: 'bold'}} className={classes.gradientText} variant='h5'>View Bonds</Typography>
+                <Typography sx={{ fontWeight: 'bold'}} className={classes.gradientText} variant='h6'>View Bonds</Typography>
                 <Typography>Explore the investment universe</Typography>
                 <br/>
                 <TextField

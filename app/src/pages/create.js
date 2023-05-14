@@ -128,10 +128,11 @@ function DashboardPage(props) {
   const [radiusInKm, setRadiusInKm] = useState("")
   const [successMessage, setSuccessMessage] = useState(false);
   const [bondName, setBondName] = useState("");
+  const [underlying, setUnderlying] = useState("0x49871B521E44cb4a34b2bF2cbCF03C1CF895C48b");
   const [endDate, setEndDate] = useState(new Date().setFullYear(new Date().getFullYear() + 1));
   const [frequency, setFrequency] = useState(5);
   const [bondAmount, setBondAmount] = useState(100);
-  const [bondDescription, setBondDescription] = useState("verify");
+  const [bondDescription, setBondDescription] = useState("Describe the trigger");
     const [CID, setCID] = useState();
   const [premiumValue, setPremiumValue] = useState(3);
   const [estimatedYield, setEstimatedYield] = useState(0);
@@ -147,7 +148,7 @@ function DashboardPage(props) {
   if(premiums && premiums.length > 0){
     policyCategories = premiums.map(premium => {
         if (premium && premium.hasOwnProperty('severity')) {
-            return ethers.utils.formatBytes32String(premium.severity)
+           return premium.severity
         } else {
             console.error('Premium object is undefined or does not have a category property', premium);
             return null;
@@ -156,7 +157,7 @@ function DashboardPage(props) {
 
     policyPremiums = premiums.map(premium => {
         if (premium && premium.hasOwnProperty('value')) {
-            return ethers.BigNumber.from(premium.value.toString());
+            return (premium.value.toString())
         } else {
             console.error('Premium object is undefined or does not have a value property', premium);
             return null;
@@ -174,22 +175,19 @@ const [holder, setHolder] = useState("0x2D41164fDe069d7177105753CE333c73332c6456
     name: bondName, //complete
     expiry: ethers.BigNumber.from(unixEndDate), //complete
     holder: address, //complete
-    typeHash: ethers.utils.formatBytes32String(selectedPeril?.name), //complete
+    catType: selectedPeril?.name, //complete
     paymentFrequency: ethers.BigNumber.from(frequencyToSeconds(frequency).toString()), //complete
     size: ethers.BigNumber.from(stringAmount), //complete
     underlying: "0x5B1F146caAAD62C4EE1fC9F29d9414B6Ed530Ac6", //update when necessary
     statement: bondDescription, //complete
     category: policyCategories, // group
     premiums: policyPremiums, // number
-    location: [
-        {
-            whatThreeWords: what3words.split("."), 
-            radius: stringRadius, 
-        },
-    ],
+    whatThreeWords: what3words, 
+    radius: stringRadius,
+    filecoinCID: "bob"
 };
 
-
+console.log(policy)
 const removePremium = (index) => {
     const newPremiums = premiums.filter((_, i) => i !== index);
     setPremiums(newPremiums);
@@ -265,6 +263,9 @@ const storePolicy = async (policy) => {
 };
 const handleDescription= (event) => {
     setBondDescription(event.target.value);
+};
+const handleUnderlying= (event) => {
+    setUnderlying(event.target.value);
 };
 
 function frequencyToSeconds(frequency) {
@@ -433,6 +434,21 @@ const calculateYield = () => {
                           />
                         </TableCell>
                       </TableRow>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Underlying Token</TableCell>
+                        <TableCell align="right">
+                          <TextField
+                            fullWidth
+                            type="text"
+                            value={underlying}
+                            name="Underlying"
+
+                            onChange={handleUnderlying}
+                            inputProps={{ min: 0 }}
+                          />
+                        </TableCell>
+                      </TableRow>
+                 
                  
                       <TableRow>
                             <TableCell sx={{ fontWeight: 'bold' }}>Peril</TableCell>
