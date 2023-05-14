@@ -99,13 +99,18 @@ function DashboardPage(props) {
   const [policy, setPolicy] = useState({})
   const { data: signer, isError, isLoading } = useSigner();
   const { provider } = useProvider(); // Get the Ethereum provider
+  const [classA, setClassA ] = useState("0")
+  const [classB, setClassB ] = useState("0")
+  const [classC, setClassC ] = useState("0")
 
-  const approvingContract = new ethers.Contract("0x49871B521E44cb4a34b2bF2cbCF03C1CF895C48b", ghoAbi, provider)
+
+  const approvingContract = new ethers.Contract("0xcbE9771eD31e761b744D3cB9eF78A1f32DD99211", ghoAbi, provider)
   
   
   const approveContract = approvingContract.connect(signer)
 
 
+  const { address, isConnecting, isDisconnected } = useAccount();
 
   const classes = useStyles();
 
@@ -123,7 +128,6 @@ function DashboardPage(props) {
   const web3 = new Web3(new Web3.providers.HttpProvider(rpc_address));
 
 
-  const { address, isConnecting, isDisconnected } = useAccount();
 let policyRow
 
   if (typeof window !== "undefined") {
@@ -148,17 +152,44 @@ let policyRow
         const policyData = await policyContract.methods.POLICY().call();
         return policyData
        console.log('data', policyData)
-  
+    
       }
 
 
-  const makeInvestment = async (rpc_url, contract_address, abiContract) => {
-    const policyContractAddress = (policyRow)
-    const policyContract = new web3.eth.Contract(abiContract, policyContractAddress);
-    await approveContract.approve((policyRow), ethers.BigNumber.from('10000000000000'));
-    const investmentData = await policyContract.methods.POLICY().call();
-   // return investmentData = await policyContract.methods.invest("address of bond recipient", [BigNumber of Tier1 amount', 'BigNumber of Tier2 amount', 'BigNumber of Tier3 amount'])
-  }
+      const makeInvestment = async () => {
+        const policyContractAddress = policyRow;
+      
+        // Here we create an ethers.js Contract instance
+        const policyContract = new ethers.Contract(policyContractAddress, abiContract, signer);
+      
+        // Convert classA, classB, classC to ethers.BigNumber
+        const classABigNumber = ethers.BigNumber.from(classA.toString());
+        const classBBigNumber = ethers.BigNumber.from(classB.toString());
+        const classCBigNumber = ethers.BigNumber.from(classC.toString());
+      
+        // Call the approve function
+        await approveContract.approve(policyRow, ethers.BigNumber.from('10000000000000')); 
+      
+        // Call the invest function using ethers.js Contract instance
+        const gasLimit = ethers.utils.parseUnits("500000", "wei"); // replace 500000 with your desired gas limit
+
+        await policyContract.invest(
+          address, 
+          [classABigNumber, classBBigNumber, classCBigNumber],
+          {
+            gasLimit: gasLimit
+          }
+        )
+      
+        setSuccessAlertOpen(true);
+        setIsCelebrating(true);
+      
+        setTimeout(() => {
+          setIsCelebrating(false);
+          console.log('hello');
+        }, 3000); // Stop confetti after 3 seconds
+      }
+      
 
   // await 
     
@@ -217,13 +248,26 @@ let policyRow
   function closeStakeModal() {
     setModalOpen(false);
   
-  }
+  } 
 
 
   const handleInvest = () => {
     makeInvestment(rpc_url, (policyRow), abiContract)
 
   }
+
+  const handleClassA= (event) => {
+    setClassA(event.target.value);
+  };
+  const handleClassB= (event) => {
+    setClassB(event.target.value);
+  };
+  const handleClassC= (event) => {
+    setClassC(event.target.value);
+  };
+
+  
+
   return (
     <>
       <Meta title="Dashboard" />
@@ -292,9 +336,9 @@ let policyRow
                         <TableCell sx={{ fontWeight: 'bold' }}>{policy?.premiums?.[2]}%</TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>   
                       <TextField
-                    label="Investment Amount"
-                    value={stakeAmount}
-                    onChange={(e) => console.log('hello')}
+                    label="Class A"
+                    value={classA}
+                    onChange={handleClassA}
                     type="number"
                     id="wbit-input"
                     className="staking-amount-input"
@@ -314,9 +358,9 @@ let policyRow
                         <TableCell sx={{ fontWeight: 'bold' }}>Class B</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>{policy?.premiums?.[1]}%</TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>  <TextField
-                    label="Investment Amount"
-                    value={stakeAmount}
-                    onChange={(e) => console.log('hello')}
+                    label="Class B"
+                    value={classB}
+                    onChange={handleClassB}
                     type="number"
                     id="wbit-input"
                     className="staking-amount-input"
@@ -335,9 +379,9 @@ let policyRow
                         <TableCell sx={{ fontWeight: 'bold' }}>Class C</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>{policy?.premiums?.[0]}%</TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>  <TextField
-                    label="Investment Amount"
-                    value={stakeAmount}
-                    onChange={(e) => console.log('hello')}
+                    label="Class C"
+                    value={classC}
+                    onChange={handleClassC}
                     type="number"
                     id="wbit-input"
                     className="staking-amount-input"

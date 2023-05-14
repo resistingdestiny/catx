@@ -27,7 +27,8 @@ export default function MapComponent(props) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`https://api.what3words.com/v3/convert-to-coordinates?words=${props.what3words.join('.')}&key=NABAUHO2`);
+        console.log('test', props.what3words.whatThreeWords)
+        const response = await axios.get(`https://api.what3words.com/v3/convert-to-coordinates?words=${props.what3words.whatThreeWords}&key=NABAUHO2`);
         console.log(response)
         setCenter([response.data.coordinates.lat, response.data.coordinates.lng]);
       } catch (error) {
