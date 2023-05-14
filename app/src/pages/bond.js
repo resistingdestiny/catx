@@ -18,7 +18,8 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import { format } from 'date-fns';
-
+import {useSigner, useProvider} from "wagmi";
+import { ethers } from "ethers";
 import {
   LineChart,
   Line,
@@ -65,7 +66,7 @@ const MapContainer = dynamic(() => import('components/viewMap'), {
 import PeopleIcon from "@mui/icons-material/People";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 
-import { contractAddresses, rpc_url, polygon_rpc_url, abiContract} from "util/contract.js";
+import { contractAddresses, rpc_url, polygon_rpc_url, abiContract, ghoAbi} from "util/contract.js";
 
 
 const tableRow = [
@@ -95,7 +96,14 @@ function DashboardPage(props) {
   const [successAlertOpen, setSuccessAlertOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState(false);
   const { chain, chains } = useNetwork();
-  const [policy, setPolicy] = useState("")
+  const [policy, setPolicy] = useState({})
+  const { data: signer, isError, isLoading } = useSigner();
+  const { provider } = useProvider(); // Get the Ethereum provider
+
+  const approvingContract = new ethers.Contract("0x49871B521E44cb4a34b2bF2cbCF03C1CF895C48b", ghoAbi, provider)
+  
+  
+  const approveContract = approvingContract.connect(signer)
 
 
 
@@ -139,9 +147,19 @@ let bond_id
         const policyData = await policyContract.methods.POLICY().call();
         return policyData
        console.log('data', policyData)
-       console.log('brexit means brexit')
+  
       }
 
+
+  const makeInvestment = async (rpc_url, contract_address, abiContract) => {
+    const policyContractAddress = "0xFDFEf7BF28a9EB2bcCA75185BA4768DcBb2d99e7"
+    const policyContract = new web3.eth.Contract(abiContract, policyContractAddress);
+    await approveContract.approve("0xFDFEf7BF28a9EB2bcCA75185BA4768DcBb2d99e7", ethers.BigNumber.from('10000000000000'));
+    const investmentData = await policyContract.methods.POLICY().call();
+   // return investmentData = await policyContract.methods.invest("address of bond recipient", [BigNumber of Tier1 amount', 'BigNumber of Tier2 amount', 'BigNumber of Tier3 amount'])
+  }
+
+  // await 
     
       const [modalOpen, setModalOpen] = useState(false);
 
@@ -151,7 +169,7 @@ let bond_id
   useEffect(() => {
     getPolicy(rpc_url, contractAddress, abiContract)
         .then(policyData => {
-            policy = {
+            let policy = {
               name: policyData.name, 
               filecoinCID: policyData.filecoinCID,
               expiry: policyData.expiry,
@@ -164,7 +182,7 @@ let bond_id
               whatThreeWords: policyData,
               radius: policyData.radius,
               category: policyData.category,
-              premiums: policyData.premium,
+              premiums: policyData.premiums,
             };
             console.log('policy data', policy);
             setPolicy(policy)
@@ -174,6 +192,7 @@ let bond_id
             console.error(error);
         });
   }, []);
+
 
   
   
@@ -197,6 +216,12 @@ let bond_id
   function closeStakeModal() {
     setModalOpen(false);
   
+  }
+
+
+  const handleInvest = () => {
+    makeInvestment(rpc_url, "0xFDFEf7BF28a9EB2bcCA75185BA4768DcBb2d99e7", abiContract)
+
   }
   return (
     <>
@@ -263,36 +288,65 @@ let bond_id
                     <TableBody>
                       <TableRow>
                         <TableCell sx={{ fontWeight: 'bold' }}>Class A</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>   <Button onClick={() => openStakeModal()} variant="contained" color="secondary" sx={{ marginBottom: 1, width: '100%' }}>
-                        Buy 
-                      </Button></TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>   <Button variant="contained" color="secondary" sx={{ marginBottom: 1, width: '100%' }}>
-                        Sell 
-                      </Button></TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>{policy?.premiums?.[0]}%</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>   
+                      <TextField
+                    label="Investment Amount"
+                    value={stakeAmount}
+                    onChange={(e) => console.log('hello')}
+                    type="number"
+                    id="wbit-input"
+                    className="staking-amount-input"
+                    variant="outlined"
+                    fullWidth
+                    InputLabelProps={{
+                      style: { color: "white" }
+
+                    }}
+                  />
+                      </TableCell>
                      
                    
 
                       </TableRow>
                       <TableRow>
                         <TableCell sx={{ fontWeight: 'bold' }}>Class B</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>   <Button variant="contained" color="secondary" sx={{ marginBottom: 1, width: '100%' }}>
-                        Buy 
-                      </Button></TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>   <Button variant="contained" color="secondary" sx={{ marginBottom: 1, width: '100%' }}>
-                        Sell 
-                      </Button></TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>{policy?.premiums?.[1]}%</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>  <TextField
+                    label="Investment Amount"
+                    value={stakeAmount}
+                    onChange={(e) => console.log('hello')}
+                    type="number"
+                    id="wbit-input"
+                    className="staking-amount-input"
+                    variant="outlined"
+                    fullWidth
+                    InputLabelProps={{
+                      style: { color: "white" }
+
+                    }}
+                  /> </TableCell>
                      
                    
 
                       </TableRow>
                       <TableRow>
                         <TableCell sx={{ fontWeight: 'bold' }}>Class C</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>   <Button variant="contained" color="secondary" sx={{ marginBottom: 1, width: '100%' }}>
-                        Buy 
-                      </Button></TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>   <Button variant="contained" color="secondary" sx={{ marginBottom: 1, width: '100%' }}>
-                        Sell 
-                      </Button></TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>{policy?.premiums?.[2]}%</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>  <TextField
+                    label="Investment Amount"
+                    value={stakeAmount}
+                    onChange={(e) => console.log('hello')}
+                    type="number"
+                    id="wbit-input"
+                    className="staking-amount-input"
+                    variant="outlined"
+                    fullWidth
+                    InputLabelProps={{
+                      style: { color: "white" }
+
+                    }}
+                  /> </TableCell>
                      
                    
 
@@ -301,6 +355,21 @@ let bond_id
                       
                     </TableBody>
                   </Table>
+
+                  <Button variant="contained"
+                  sx={{
+                    backgroundImage: "linear-gradient(85.9deg, #6F00FF -14.21%, #8A2BE2 18.25%, #A020F0 52.49%, #BA55D3 81.67%, #C71585 111.44%)",
+                    color: 'white',
+                    mr: 0,
+                    mt: 2,
+                    ml: 20
+                  }}  
+                  onClick={handleInvest}
+                  
+                  
+                  >
+                   Invest
+                  </Button>
                   </CardContent>
                 </Card>
               </Grid>
@@ -335,12 +404,12 @@ let bond_id
                         <TableCell >{policy.statement}</TableCell>
 
                       </TableRow>
-                      <TableRow>
+                     {/*  <TableRow>
                     <TableCell sx={{ fontWeight: 'bold' }}>Expiry</TableCell>
                     <TableCell>
-                      {format(new Date(policy.expiry * 1000), 'yyyy-MM-dd HH:mm:ss')}
+                    {format(new Date(policy.expiry * 1000), 'yyyy-MM-dd HH:mm:ss')}
                     </TableCell>
-                  </TableRow>
+                  </TableRow> */}
                       <TableRow>
                       <TableCell sx={{ fontWeight: 'bold' }}>Location</TableCell>
 
