@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: Unlicensed
 pragma solidity 0.8.16;
 
-interface ICat {
+import {OptimisticOracleV3CallbackRecipientInterface as ooRecipient} from "./OptimisticOracleV3CallbackRecipientInterface.sol";
+
+interface ICat is ooRecipient {
     function BPS() external returns (uint);
 
     function year() external returns (uint);
@@ -37,6 +39,8 @@ interface ICat {
     event Refund(address indexed sender, address indexed receiver, uint[3] indexed amounts);
 
     event CatInitialized();
+
+    event Claim(string catType, uint payout);
 
 
     // Ideally should contain immutable data only (removed settled for this reason)
@@ -78,5 +82,5 @@ interface ICat {
 
     function requestPayout() external returns (bytes32); // XREF UMA
 
-    function assertionResolvedCallback(bytes32, bool) external; // XREF UMA
+    function withdraw(address) external;
 }
