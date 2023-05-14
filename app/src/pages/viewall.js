@@ -51,15 +51,15 @@ const useStyles = makeStyles((theme) => ({
 
 
   function DashboardPage(props) {
-    const contractAddress = '0x64318f50569d490B4382d23cb2239F851Ba4d984'
+    const contractAddress = '0x20C6E292F4127e0FAB75AB67C01eD2Cb72fD814D'
 
-    const [frog, setFrog] = useState('')
+    const [frog, setFrog] = useState([])
     const getAllPolicies = async (rpc_url, contract_address, abi, abiContract) => {
       // Instantiate web3 with HttpProvider
       const web3 = new Web3(new Web3.providers.HttpProvider(rpc_url));
   
       // Instantiate contract
-      const contract = new web3.eth.Contract(abi, '0x64318f50569d490B4382d23cb2239F851Ba4d984');
+      const contract = new web3.eth.Contract(abi, '0x20C6E292F4127e0FAB75AB67C01eD2Cb72fD814D');
       console.log('frog2', contract )
       // Get past events
       const fromBlock = await web3.eth.getBlockNumber() - 1000;
@@ -73,19 +73,30 @@ const useStyles = makeStyles((theme) => ({
   
       const policies = [];
 
-        for (const event of events) {
-          // Use the correct variable from your event log
-          const policyContractAddress = event.returnValues.policy;
-
-          // Instantiate the policy contract
-          const policyContract = new web3.eth.Contract(abiContract, policyContractAddress);
-
-          // Call a method on the policy contract to fetch data
-          // The exact method call depends on your contract's ABI
-          const policyData = await policyContract.methods.POLICY().call();
-
-          policies.push(policyData);
-        }
+      for (const event of events) {
+        const policyContractAddress = event.returnValues.policy;
+        const policyContract = new web3.eth.Contract(abiContract, policyContractAddress);
+        const policyData = await policyContract.methods.POLICY().call();
+      
+        let policy = {
+          policyContract: policyContractAddress,
+          name: policyData.name, 
+          filecoinCID: policyData.filecoinCID,
+          expiry: policyData.expiry,
+          holder: policyData.holder,
+          catType: policyData.catType,
+          paymentFrequency: policyData.paymentFrequency,
+          size: policyData.size,
+          underlying: policyData.underlying,
+          statement: policyData.statement,
+          whatThreeWords: policyData.whatThreeWords,
+          radius: policyData.radius,
+          category: policyData.category,
+          premiums: policyData.premiums,
+        };
+      
+        policies.push(policy);
+      }
 
         setFrog(policies);
         return policies;
@@ -123,17 +134,17 @@ const useStyles = makeStyles((theme) => ({
 //
 const web3 = new Web3();
 const [rows, setRows] = useState([]);
+// Fetch the policies
 useEffect(() => {
   getAllPolicies(rpc_url, contractAddress, abi, abiContract)
-      .then(policies => {
-          // Do something with the policies
-          console.log('fish', policies.events);
-      })
-      .catch(error => {
-          // Handle or log any errors
-          console.error(error);
-      });
+    .then(policies => {
+      setFrog(policies);
+    })
+    .catch(error => {
+      console.error(error);
+    });
 }, []);
+
 const handleSort = (property) => (event) => {
   const isAsc = orderBy === property && order === 'asc';
   setOrder(isAsc ? 'desc' : 'asc');
@@ -155,33 +166,13 @@ const [order, setOrder] = useState('asc');
 const [orderBy, setOrderBy] = useState('name');
 
 
-  let bondData = [
-    {
-      icon: "https://via.placeholder.com/150",
-      id: 1,
-      name: "Bond 1",
-      number: 1,
-      issuePrice: 100,
-      currentPrice: 120,
-      fluctuation: 20,
-    },
-    {
-      icon: "https://via.placeholder.com/150",
-      id: 2,
-      name: "Bond 2",
-      number: 2,
-      issuePrice: 100,
-      currentPrice: 120,
-      fluctuation: 20,
-    },
-    // ... add more bonds as necessary
-  ];
+
   
  
 
   const classes = useStyles();
-  const filteredBonds = bondData.filter(bond => bond.name.toLowerCase().includes(search.toLowerCase()));
-  const handleRowClick = (id) => {
+  const filteredPolicies = frog.filter(policy => policy.name.toLowerCase().includes(search.toLowerCase()));
+    const handleRowClick = (id) => {
     router.push(`/bond?${id}`);
   };
   return (
@@ -307,30 +298,29 @@ const [orderBy, setOrderBy] = useState('name');
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                {stableSort(filteredBonds, getComparator(order, orderBy)).map((bond) => (
+                    {stableSort(filteredPolicies, getComparator(order, orderBy)).map((policy) => (
                   <TableRow
-                  key={bond.name}
-                  onClick={() => handleRowClick(bond.id)}
-                  sx={{
-                    "&:hover": {
-                      backgroundColor: "rgba(0, 0, 0, 0.04)", // or any color you want
-                      transition: "all .2s ease",
-                      cursor: "pointer",
-                    },
-                  }}
-                >
+                    key={policy.name}
+                    onClick={() => handleRowClick(policy.policyContract)}
+                    sx={{
+                      "&:hover": {
+                        backgroundColor: "rgba(0, 0, 0, 0.04)",
+                        transition: "all .2s ease",
+                        cursor: "pointer",
+                      },
+                    }}
+                  >
                     <TableCell component="th" scope="row">
                       <Box display="flex" alignItems="center">
-                        <Avatar alt={bond.name} src={bond.image} />
+                        <Avatar alt={policy.name} src={policy.image} />
                         <Typography variant="body1" style={{ marginLeft: 10 }}>
-                          {bond.name}
+                          {policy.name}
                         </Typography>
                       </Box>
                     </TableCell>
-                    <TableCell align="right">{bond.number}</TableCell>
-                    <TableCell align="right">{bond.issuePrice}</TableCell>
-                    <TableCell align="right">{bond.currentPrice}</TableCell>
-                  
+                    <TableCell align="right">{policy.size}</TableCell>
+                    <TableCell align="right">{policy.issuePrice}</TableCell>
+                    <TableCell align="right">{policy.currentPrice}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

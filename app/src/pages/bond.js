@@ -124,13 +124,14 @@ function DashboardPage(props) {
 
 
   const { address, isConnecting, isDisconnected } = useAccount();
-let bond_id
+let policyRow
 
   if (typeof window !== "undefined") {
     const url = window.location.href;
     const parts = url.split("?");
 
-    bond_id = parts[parts.length - 1];
+    policyRow = parts[parts.length - 1];
+    console.log(policyRow)
   }
 
 
@@ -138,7 +139,7 @@ let bond_id
   const getPolicy = async (rpc_url, contract_address, abiContract) => {
     // Instantiate web3 with HttpProvider
 
-       const policyContractAddress = "0xFDFEf7BF28a9EB2bcCA75185BA4768DcBb2d99e7"
+       const policyContractAddress = policyRow
         // Instantiate the policy contract
         const policyContract = new web3.eth.Contract(abiContract, policyContractAddress);
         console.log('contrac', policyContract)
@@ -152,9 +153,9 @@ let bond_id
 
 
   const makeInvestment = async (rpc_url, contract_address, abiContract) => {
-    const policyContractAddress = "0xFDFEf7BF28a9EB2bcCA75185BA4768DcBb2d99e7"
+    const policyContractAddress = (policyRow)
     const policyContract = new web3.eth.Contract(abiContract, policyContractAddress);
-    await approveContract.approve("0xFDFEf7BF28a9EB2bcCA75185BA4768DcBb2d99e7", ethers.BigNumber.from('10000000000000'));
+    await approveContract.approve((policyRow), ethers.BigNumber.from('10000000000000'));
     const investmentData = await policyContract.methods.POLICY().call();
    // return investmentData = await policyContract.methods.invest("address of bond recipient", [BigNumber of Tier1 amount', 'BigNumber of Tier2 amount', 'BigNumber of Tier3 amount'])
   }
@@ -220,7 +221,7 @@ let bond_id
 
 
   const handleInvest = () => {
-    makeInvestment(rpc_url, "0xFDFEf7BF28a9EB2bcCA75185BA4768DcBb2d99e7", abiContract)
+    makeInvestment(rpc_url, (policyRow), abiContract)
 
   }
   return (
@@ -288,7 +289,7 @@ let bond_id
                     <TableBody>
                       <TableRow>
                         <TableCell sx={{ fontWeight: 'bold' }}>Class A</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>{policy?.premiums?.[0]}%</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>{policy?.premiums?.[2]}%</TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>   
                       <TextField
                     label="Investment Amount"
@@ -332,7 +333,7 @@ let bond_id
                       </TableRow>
                       <TableRow>
                         <TableCell sx={{ fontWeight: 'bold' }}>Class C</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>{policy?.premiums?.[2]}%</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>{policy?.premiums?.[0]}%</TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>  <TextField
                     label="Investment Amount"
                     value={stakeAmount}
